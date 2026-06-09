@@ -1,0 +1,144 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global helper primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      // Return true if signed-in to accommodate both verified Google sign-ins and new email accounts
+      return isSignedIn();
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Entity validation schemas
+
+    function isValidLearningSession(data) {
+      return data.keys().hasAll(['userId', 'matnName', 'type', 'date', 'score', 'createdAt'])
+          && data.keys().size() == 6
+          && data.userId == request.auth.uid
+          && data.matnName is string
+          && data.matnName.size() <= 200
+          && data.type is string
+          && (data.type == 'recitation' || data.type == 'quiz' || data.type == 'chat')
+          && data.date is string
+          && data.date.size() <= 60
+          && data.score is int
+          && data.score >= 0
+          && data.score <= 100
+          && data.createdAt is string
+          && data.createdAt.size() <= 60;
+    }
+
+    function isValidChatSession(data) {
+      return data.keys().hasAll(['title', 'matnName', 'userId', 'lastUpdated'])
+          && data.keys().size() == 4
+          && data.userId == request.auth.uid
+          && data.title is string
+          && data.title.size() <= 250
+          && data.matnName is string
+          && data.matnName.size() <= 200
+          && data.lastUpdated is string
+          && data.lastUpdated.size() <= 60;
+    }
+
+    function isValidChatMessage(data) {
+      return data.keys().hasAll(['sessionId', 'sender', 'text', 'timestamp'])
+          && data.keys().size() == 4
+          && data.sessionId is string
+          && data.sessionId.size() <= 128
+          && data.sender is string
+          && (data.sender == 'user' || data.sender == 'bot')
+          && data.text is string
+          && data.text.size() <= 10000
+          && data.timestamp is string
+          && data.timestamp.size() <= 60;
+    }
+
+    function isValidUser(data, id) {
+      return data.keys().hasAll(['userId', 'displayName', 'photoURL', 'email', 'settings', 'updatedAt'])
+          && data.keys().size() == 6
+          && data.userId == request.auth.uid
+          && id == request.auth.uid
+          && data.displayName is string
+          && data.displayName.size() <= 200
+          && data.photoURL is string
+          && data.photoURL.size() <= 10000
+          && data.email is string
+          && data.email.size() <= 200
+          && data.settings is map
+          && data.updatedAt is string
+          && data.updatedAt.size() <= 60;
+    }
+
+    // Collection security configurations
+
+    // 0. User Profile Custom Prefs
+    match /users/{userId} {
+      allow get: if isSignedIn() && userId == request.auth.uid;
+      allow create, update: if isSignedIn() && isEmailVerified() && isValidId(userId)
+                            && isValidUser(incoming(), userId);
+      allow delete: if false;
+    }
+
+    // 1. Learning Sessions
+    match /learning_sessions/{sessionId} {
+      allow create: if isSignedIn() && isEmailVerified() && isValidId(sessionId)
+                    && isValidLearningSession(incoming());
+      
+      // Query Enforcer
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      allow update, delete: if false;
+    }
+
+    // 2. Chat Sessions
+    match /chat_sessions/{sessionId} {
+      allow create: if isSignedIn() && isEmailVerified() && isValidId(sessionId)
+                    && isValidChatSession(incoming());
+      
+      // Query Enforcer
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      allow update: if isSignedIn() && isEmailVerified() && isValidId(sessionId)
+                    && isValidChatSession(incoming())
+                    && incoming().userId == existing().userId
+                    && incoming().userId == request.auth.uid
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['title', 'lastUpdated']);
+                    
+      allow delete: if isSignedIn() && isEmailVerified() && isValidId(sessionId)
+                    && resource.data.userId == request.auth.uid;
+    }
+
+    // 3. Individual Chat Messages (Master Gate synced with parent session ownership)
+    match /chat_messages/{messageId} {
+      allow create: if isSignedIn() && isEmailVerified() && isValidId(messageId)
+                    && isValidChatMessage(incoming())
+                    && get(/databases/$(database)/documents/chat_sessions/$(incoming().sessionId)).data.userId == request.auth.uid;
+                    
+      allow read: if isSignedIn()
+                  && get(/databases/$(database)/documents/chat_sessions/$(resource.data.sessionId)).data.userId == request.auth.uid;
+                  
+      allow update, delete: if false;
+    }
+
+  }
+}

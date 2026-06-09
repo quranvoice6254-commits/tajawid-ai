@@ -1,0 +1,144 @@
+{
+  "entities": {
+    "LearningSession": {
+      "title": "Learning Session",
+      "description": "Represents a recitation, quiz, or tutoring event by a student",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The Firebase Auth UID of the student"
+        },
+        "matnName": {
+          "type": "string",
+          "description": "Name of the Matn studied"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["recitation", "quiz", "chat"],
+          "description": "Session type"
+        },
+        "date": {
+          "type": "string",
+          "description": "Readable localized date when session took place"
+        },
+        "score": {
+          "type": "integer",
+          "description": "Grade or score out of 100"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of session creation"
+        }
+      },
+      "required": ["userId", "matnName", "type", "date", "score", "createdAt"]
+    },
+    "ChatSession": {
+      "title": "Chat Session",
+      "description": "A discussion session about a Matn with the AI Assistant",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "User-friendly title of the conversation"
+        },
+        "matnName": {
+          "type": "string",
+          "description": "Name of the Matn associated with the chat"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner student UID"
+        },
+        "lastUpdated": {
+          "type": "string",
+          "description": "ISO timestamp of the last message in this session"
+        }
+      },
+      "required": ["title", "matnName", "userId", "lastUpdated"]
+    },
+    "ChatMessage": {
+      "title": "Chat Message",
+      "description": "An individual message within a conversation",
+      "type": "object",
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "description": "Reference ID to the parent ChatSession"
+        },
+        "sender": {
+          "type": "string",
+          "enum": ["user", "bot"],
+          "description": "Who sent the message"
+        },
+        "text": {
+          "type": "string",
+          "description": "Text body of the message"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "ISO timestamp when the message was sent"
+        }
+      },
+      "required": ["sessionId", "sender", "text", "timestamp"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Represents the student's personal details, profile image and application preferences.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The unique identified of the user"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Full name or alias of the student"
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Firebase Storage or standard public URL link to user profile photo"
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address"
+        },
+        "settings": {
+          "type": "object",
+          "description": "A map of user configuration preferences"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of the profile last update"
+        }
+      },
+      "required": ["userId", "displayName", "photoURL", "email", "settings", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Personal profiles and custom preferences for the authenticated users"
+    },
+    "/learning_sessions/{sessionId}": {
+      "schema": {
+        "$ref": "#/entities/LearningSession"
+      },
+      "description": "List of student learning sessions and activities"
+    },
+    "/chat_sessions/{sessionId}": {
+      "schema": {
+        "$ref": "#/entities/ChatSession"
+      },
+      "description": "Chat conversations metadata"
+    },
+    "/chat_messages/{messageId}": {
+      "schema": {
+        "$ref": "#/entities/ChatMessage"
+      },
+      "description": "History of individual chat messages across sessions"
+    }
+  }
+}

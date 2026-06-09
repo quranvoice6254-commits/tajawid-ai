@@ -1,0 +1,10 @@
+{
+  "name": "تجاويد",
+  "description": "كرر حتى تتقن - المرشد والمسند الصوتي التفاعلي لتصحيح تسميع المتون واختبار وفهم منظومات التجويد والتوحيد.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

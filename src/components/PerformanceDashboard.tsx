@@ -1,13 +1,14 @@
-import { Trophy, Compass, Star, HelpCircle, Activity, Award, Calendar, AlertTriangle } from 'lucide-react';
+import { Trophy, Compass, Star, HelpCircle, Activity, Award, Calendar, AlertTriangle, FileSpreadsheet, Printer, Share2 } from 'lucide-react';
 import { PerformanceStats, LearningSession } from '../types';
 
 interface PerformanceDashboardProps {
   stats: PerformanceStats;
   history: LearningSession[];
   onClearHistory: () => void;
+  onOpenExport?: (category?: 'grades' | 'attendance' | 'performance_report' | 'stats_card') => void;
 }
 
-export default function PerformanceDashboard({ stats, history, onClearHistory }: PerformanceDashboardProps) {
+export default function PerformanceDashboard({ stats, history, onClearHistory, onOpenExport }: PerformanceDashboardProps) {
   
   // Create beautiful progress SVG coordinates
   const EvolutionChart = () => {
@@ -185,13 +186,34 @@ export default function PerformanceDashboard({ stats, history, onClearHistory }:
 
       {/* History table */}
       <div className="bg-white rounded-3xl p-6 shadow-sm border border-emerald-primary/10 space-y-4 text-right">
-        <div className="flex justify-between items-center border-b border-zinc-100 pb-3">
-          <button
-            onClick={onClearHistory}
-            className="text-[10px] text-red-500 hover:underline font-black cursor-pointer"
-          >
-            مسح جميع الإحصاءات والأرشيف
-          </button>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-zinc-100 pb-3 gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={onClearHistory}
+              className="text-[10px] text-red-500 hover:underline font-black cursor-pointer"
+            >
+              مسح جميع الأرشيف
+            </button>
+            {onOpenExport && (
+              <>
+                <span className="text-zinc-300 text-[10px]">|</span>
+                <button
+                  onClick={() => onOpenExport('grades')}
+                  className="text-[10.5px] text-emerald-primary hover:underline font-extrabold cursor-pointer flex items-center gap-1 bg-emerald-light/40 hover:bg-emerald-light/75 px-2 py-1 rounded"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  <span>تصدير كشيت درجات</span>
+                </button>
+                <button
+                  onClick={() => onOpenExport('performance_report')}
+                  className="text-[10.5px] text-amber-705 hover:underline font-extrabold cursor-pointer flex items-center gap-1 bg-amber-50 hover:bg-amber-100 px-2 py-1 rounded"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>تصدير تقرير أداء</span>
+                </button>
+              </>
+            )}
+          </div>
           
           <h4 className="text-xs font-black text-emerald-primary flex items-center gap-1.5">
             <Calendar className="w-4 h-4" />

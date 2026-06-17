@@ -32,9 +32,10 @@ interface ChatSession {
 interface SmartAssistantProps {
   matnName: string;
   user: any;
+  onOpenChatExport?: (text: string) => void;
 }
 
-export default function SmartAssistant({ matnName, user }: SmartAssistantProps) {
+export default function SmartAssistant({ matnName, user, onOpenChatExport }: SmartAssistantProps) {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -412,12 +413,33 @@ export default function SmartAssistant({ matnName, user }: SmartAssistantProps) 
                 {m.sender === "user" ? <User className="w-4.5 h-4.5" /> : <Bot className="w-4.5 h-4.5" />}
               </div>
               
-              <div className={`p-3.5 rounded-2xl text-[11px] font-medium leading-relaxed text-right text-zinc-800 whitespace-pre-wrap ${
-                m.sender === "user" 
-                  ? "bg-amber-50 rounded-tr-none border border-amber-200/50" 
-                  : "bg-zinc-50 rounded-tl-none border border-zinc-100 shadow-sm"
-              }`}>
-                {m.text}
+              <div className="flex flex-col space-y-1.5 flex-1">
+                <div className={`p-3.5 rounded-2xl text-[11px] font-medium leading-relaxed text-right text-zinc-805 whitespace-pre-wrap ${
+                  m.sender === "user" 
+                    ? "bg-amber-50 rounded-tr-none border border-amber-200/50" 
+                    : "bg-zinc-50 rounded-tl-none border border-zinc-100 shadow-sm"
+                }`}>
+                  {m.text}
+                </div>
+
+                {m.sender === "bot" && onOpenChatExport && (
+                  <div className="flex items-center gap-2 mt-0.5 mr-1 text-[9px] justify-start no-print">
+                    <button 
+                      onClick={() => onOpenChatExport(m.text)}
+                      className="p-1 px-2.5 bg-white hover:bg-emerald-50 hover:text-emerald-800 text-zinc-650 rounded-lg transition-all font-bold flex items-center gap-1 cursor-pointer border border-zinc-200"
+                      title="تصدير كملف PDF مخصص للتحميل والطباعة"
+                    >
+                      <span>تصدير PDF 📄</span>
+                    </button>
+                    <button 
+                      onClick={() => onOpenChatExport(m.text)}
+                      className="p-1 px-2.5 bg-white hover:bg-amber-50 hover:text-amber-850 text-zinc-650 rounded-lg transition-all font-bold flex items-center gap-1 cursor-pointer border border-zinc-200"
+                      title="تصدير كصورة PNG عالية الجودة"
+                    >
+                      <span>تصدير صورة 🖼️</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}

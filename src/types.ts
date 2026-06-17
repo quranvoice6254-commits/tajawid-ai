@@ -26,6 +26,10 @@ export interface ExplanationResult {
   grammarAnalysis: string; // إعراب
   tajweedRules: string[];
   educationalTip: string;
+  vocabularyExplanation?: string; // شرح مفردات البيت
+  overallMeaning?: string; // المعنى الإجمالي
+  scientificBenefits?: string[]; // الفوائد العلمية
+  practicalExamples?: string[]; // الأمثلة التطبيقية
 }
 
 export interface QuizQuestion {

@@ -13,7 +13,8 @@ import {
   ShieldCheck,
   CheckCircle,
   AlertCircle,
-  Loader2
+  Loader2,
+  FileSpreadsheet
 } from 'lucide-react';
 
 import MatnExplainer from './components/MatnExplainer';
@@ -23,6 +24,8 @@ import SmartAssistant from './components/SmartAssistant';
 import PerformanceDashboard from './components/PerformanceDashboard';
 import AuthScreen from './components/AuthScreen';
 import ProfilePhotoPicker from './components/ProfilePhotoPicker';
+import ExportWizard from './components/ExportWizard';
+import { ExplanationResult, QuizReport } from './types';
 
 import { auth as realAuth, mockAuth, isFirebaseReady } from './lib/firebase';
 import { onAuthStateChanged, signOut as firebaseSignOut, updateProfile } from "firebase/auth";
@@ -88,6 +91,13 @@ export default function App() {
     quizSuccessRate: 90,
     weeklyProgress: []
   });
+
+  // Export System Wizard States
+  const [isExportOpen, setIsExportOpen] = useState<boolean>(false);
+  const [exportQuizReport, setExportQuizReport] = useState<QuizReport | null>(null);
+  const [exportExplanation, setExportExplanation] = useState<ExplanationResult | null>(null);
+  const [exportChatText, setExportChatText] = useState<string | null>(null);
+  const [exportCategory, setExportCategory] = useState<string>('grades');
 
   // Listen for user sign-in status changes dynamically
   useEffect(() => {
@@ -551,7 +561,7 @@ export default function App() {
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6 md:py-8 space-y-6">
         
         {/* Welcome motivational message */}
-        <div className="bg-white border border-emerald-primary/5 p-4 md:p-6 rounded-3xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="bg-white border border-emerald-primary/5 p-4 md:p-6 rounded-3xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="space-y-1.5 text-right flex-1 select-none">
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] uppercase font-black bg-emerald-light text-emerald-primary px-2.5 py-1 rounded-full">
@@ -566,6 +576,21 @@ export default function App() {
             <p className="text-xs text-zinc-500 font-bold leading-relaxed">
               هنا تجد دليلاً كاملاً للتكرار التبادلي والمصحح الصوتي الذكي في متون العقيدة والتجويد لتتخطى اللحن الجلي والخفي.
             </p>
+          </div>
+          
+          <div className="shrink-0 w-full md:w-auto text-left">
+            <button
+              onClick={() => {
+                setExportQuizReport(null);
+                setExportExplanation(null);
+                setExportCategory('grades');
+                setIsExportOpen(true);
+              }}
+              className="w-full md:w-auto py-3 px-5 bg-gradient-to-l from-emerald-primary to-emerald-900 border border-emerald-600Hover hover:shadow-lg text-white font-extrabold text-xs rounded-2xl flex items-center justify-center gap-2 transition-all hover:scale-103 cursor-pointer"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-amber-300" />
+              <span>نظام التصدير والطباعة الاحترافي</span>
+            </button>
           </div>
         </div>
 
@@ -654,6 +679,12 @@ export default function App() {
               matnName={matnName}
               onSelectMatn={(name) => setMatnName(name)}
               onAddSession={handleAddSession}
+              onOpenExport={(exp) => {
+                setExportExplanation(exp);
+                setExportQuizReport(null);
+                setExportCategory('lesson_summary');
+                setIsExportOpen(true);
+              }}
             />
           )}
 
@@ -668,6 +699,12 @@ export default function App() {
             <SmartQuiz
               matnName={matnName}
               onAddSession={handleAddSession}
+              onOpenExport={(rep) => {
+                setExportQuizReport(rep);
+                setExportExplanation(null);
+                setExportCategory('exam');
+                setIsExportOpen(true);
+              }}
             />
           )}
 
@@ -675,6 +712,13 @@ export default function App() {
             <SmartAssistant
               matnName={matnName}
               user={user}
+              onOpenChatExport={(text) => {
+                setExportChatText(text);
+                setExportExplanation(null);
+                setExportQuizReport(null);
+                setExportCategory('chat_message');
+                setIsExportOpen(true);
+              }}
             />
           )}
 
@@ -683,6 +727,12 @@ export default function App() {
               stats={stats}
               history={history}
               onClearHistory={handleClearHistory}
+              onOpenExport={(cat) => {
+                setExportQuizReport(null);
+                setExportExplanation(null);
+                setExportCategory(cat || 'grades');
+                setIsExportOpen(true);
+              }}
             />
           )}
 
@@ -832,6 +882,19 @@ export default function App() {
           © {new Date().getFullYear()} تجاويد - كرر حتى تتقن. منصة ضبط وتسميع المنظومات الشرعية واللغوية بالذكاء الاصطناعي.
         </p>
       </footer>
+
+      {/* Advanced Export Portal Overlay */}
+      {isExportOpen && (
+        <ExportWizard
+          onClose={() => setIsExportOpen(false)}
+          history={history}
+          stats={stats}
+          initialQuizReport={exportQuizReport}
+          initialExplanation={exportExplanation}
+          initialChatText={exportChatText}
+          activeMatn={matnName}
+        />
+      )}
 
     </div>
   );

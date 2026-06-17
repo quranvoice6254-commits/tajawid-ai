@@ -20,12 +20,14 @@ interface MatnExplainerProps {
   matnName: string;
   onSelectMatn: (name: string) => void;
   onAddSession: (score: number, type: 'recitation' | 'quiz' | 'chat') => void;
+  onOpenExport?: (explanation: ExplanationResult) => void;
 }
 
 export default function MatnExplainer({
   matnName,
   onSelectMatn,
-  onAddSession
+  onAddSession,
+  onOpenExport
 }: MatnExplainerProps) {
   const [error, setError] = useState<string | null>(null);
   const [searchVerse, setSearchVerse] = useState<string>('');
@@ -218,19 +220,11 @@ export default function MatnExplainer({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 pb-4">
               
               <div className="flex items-center gap-2">
-                <button
-                  onClick={toggleAllReveal}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-gold-accent border border-amber-500/10 text-[10px] font-black rounded-lg transition-all cursor-pointer"
-                  title="إخفاء أو كشف كامل الأبيات للتقويم الذاتي"
-                >
-                  {globalReveal ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                  <span>{globalReveal ? "إخفاء كل الأبيات" : "عرض كل الأبيات"}</span>
-                </button>
                 <div className="text-right">
                   <h3 className="font-black text-sm text-zinc-800">
                     الأبيات والمنظومة تفاعلياً
                   </h3>
-                  <p className="text-[10px] text-zinc-400 font-semibold">اضغط على زر العين 👀 لعرض شطري البيت، أو انقر للاستماع للنطق والشرح</p>
+                  <p className="text-[10px] text-zinc-400 font-semibold">تصفح الأبيات بجميع حركاتها وتشكيلها الصحيح، وانقر على أي بيت لشرحه وإعرابه بالكامل</p>
                 </div>
               </div>
 
@@ -253,76 +247,69 @@ export default function MatnExplainer({
             )}
 
             {/* List rendered */}
-            <div className="space-y-3.5 max-h-[500px] overflow-y-auto custom-scrollbar pr-1" id="interactive-verses-canvas">
-              {filteredVerses.map((verse, index) => {
+            <div className="space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar pr-1" id="interactive-verses-canvas">
+              {filteredVerses.map((verse) => {
                 const isSelected = explainingId === verse.id;
-                const isRevealed = revealedVerses[verse.id] || globalReveal;
+                const realIndex = selectedData.verses.findIndex(v => v.id === verse.id) + 1;
 
                 return (
                   <div
                     key={verse.id}
-                    className={`p-4 rounded-2xl border transition-all duration-300 space-y-4 ${
+                    className={`p-5 rounded-2xl border transition-all duration-300 space-y-4 ${
                       isSelected
-                        ? 'bg-[#faefe2]/35 border-gold-accent'
-                        : 'bg-zinc-50/50 border-zinc-150/40 hover:bg-[#f6faf8]'
+                        ? 'bg-[#faefe2]/40 border-amber-400 shadow-md scale-[1.01]'
+                        : 'bg-zinc-50 border-zinc-200/50 hover:border-emerald-600/30 hover:bg-[#f6faf8]'
                     }`}
                   >
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                      <div className="flex-1 w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 md:gap-4">
-                        
+                    <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+                      
+                      {/* Left-side / top verse numbering badge */}
+                      <div className="flex items-center gap-2.5 self-start lg:self-center">
+                        <div className="w-8 h-8 rounded-full bg-emerald-primary text-white text-xs font-black flex items-center justify-center shadow-xs">
+                          {realIndex}
+                        </div>
+                        <span className="text-[10px] bg-zinc-200/60 text-zinc-600 px-2 py-0.5 rounded-full font-bold">
+                          {verse.chapter}
+                        </span>
+                      </div>
+
+                      {/* Traditional elegant Arabic poetry double hemistich layout */}
+                      <div className="flex-1 w-full flex flex-col md:flex-row items-stretch justify-between gap-3 text-right">
                         {/* Shatr 1 */}
-                        <div className="font-amiri text-base md:text-lg text-zinc-800 text-right flex-1 select-none font-bold">
-                          {isRevealed ? (
-                            verse.s1
-                          ) : (
-                            <span className="text-zinc-350 cursor-pointer text-xs font-sans tracking-widest hover:text-emerald-primary" onClick={() => toggleVerseReveal(verse.id)}>
-                              •••••••••••••••••••• (انقر للكشف)
-                            </span>
-                          )}
+                        <div className="flex-1 font-amiri text-base md:text-lg lg:text-xl text-emerald-950 bg-emerald-50/20 px-4 py-3 rounded-2xl border border-emerald-900/5 shadow-2xs font-extrabold flex items-center justify-center text-center leading-loose">
+                          {verse.s1}
                         </div>
 
-                        {/* Middle badge */}
-                        <div className="flex items-center gap-1.5 self-center my-1 sm:my-0">
-                          <button
-                            onClick={() => toggleVerseReveal(verse.id)}
-                            className="p-1 hover:bg-zinc-250 text-zinc-400 hover:text-zinc-600 rounded"
-                            title="عرض / إخفاء البيت"
-                          >
-                            {isRevealed ? <EyeOff className="w-3.5 h-3.5 text-emerald-primary" /> : <Eye className="w-3.5 h-3.5" />}
-                          </button>
-                          <div className="w-6.5 h-6.5 rounded-full bg-emerald-light text-emerald-primary text-[10px] font-black flex items-center justify-center">
-                            {index + 1}
-                          </div>
+                        {/* Traditional poetry break indicator */}
+                        <div className="hidden md:flex items-center justify-center text-amber-500 font-sans text-sm px-1 font-black self-center">
+                          ❈
                         </div>
 
                         {/* Shatr 2 */}
-                        <div className="font-amiri text-base md:text-lg text-zinc-800 text-left sm:text-right flex-1 select-none font-bold">
-                          {isRevealed ? (
-                            verse.s2
-                          ) : (
-                            <span className="text-zinc-350 cursor-pointer text-xs font-sans tracking-widest hover:text-emerald-primary" onClick={() => toggleVerseReveal(verse.id)}>
-                              •••••••••••••••••••• (انقر للكشف)
-                            </span>
-                          )}
+                        <div className="flex-1 font-amiri text-base md:text-lg lg:text-xl text-emerald-950 bg-emerald-50/20 px-4 py-3 rounded-2xl border border-emerald-900/5 shadow-2xs font-extrabold flex items-center justify-center text-center leading-loose">
+                          {verse.s2}
                         </div>
-
                       </div>
 
                       {/* Actions */}
-                      <div className="flex gap-1.5">
+                      <div className="flex gap-2 shrink-0 self-end lg:self-center">
                         <button
                           onClick={() => handleSpeak(`${verse.s1} ، ${verse.s2}`)}
-                          className="p-1.5 bg-white border border-zinc-200 hover:border-gold-accent hover:bg-amber-50 rounded-xl hover:scale-105 transition-all text-emerald-primary"
+                          className="p-2 bg-white border border-zinc-250 hover:border-gold-accent hover:bg-amber-50 rounded-xl hover:scale-105 transition-all text-emerald-primary cursor-pointer shadow-2xs"
                           title="استمع للبيت مرتلاً ومقروءاً"
                         >
-                          <Volume2 className="w-4 h-4" />
+                          <Volume2 className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => explainVerse(verse)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-primary text-white text-[10px] font-bold rounded-xl shadow-xs hover:bg-emerald-900 hover:scale-103 transition-all cursor-pointer"
+                          className={`flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-xl shadow-xs transition-all cursor-pointer ${
+                            isSelected 
+                              ? 'bg-amber-500 text-white hover:bg-amber-600'
+                              : 'bg-emerald-primary text-white hover:bg-[#004d3d]'
+                          }`}
                         >
-                          <Sparkles className="w-3 h-3 text-amber-300" />
-                          <span>شرح وإعراب البيت</span>
+                          <Sparkles className="w-4 h-4 text-amber-200" />
+                          <span>تفسير البيت وإعرابه</span>
                         </button>
                       </div>
                     </div>
@@ -331,7 +318,7 @@ export default function MatnExplainer({
                     {isSelected && (
                       <div className="border-t border-zinc-200/80 pt-4 space-y-4">
                         {explainLoading && (
-                          <div className="flex items-center justify-center py-6 gap-2">
+                          <div className="flex items-center justify-center py-8 gap-2">
                             <Loader2 className="w-5 h-5 text-emerald-primary animate-spin" />
                             <span className="text-xs text-zinc-500 font-black">جاري طلب الشرح اللغوي التفصيلي وإذن الإعراب النحوي من المعلم...</span>
                           </div>
@@ -339,25 +326,80 @@ export default function MatnExplainer({
 
                         {explanation && !explainLoading && (
                           <div className="space-y-4 text-xs font-medium leading-relaxed text-zinc-700 text-right">
-                            {/* Meaning */}
-                            <div className="bg-[#fcfbf9] p-4 rounded-xl border border-emerald-primary/5 space-y-1">
-                              <h5 className="font-black text-emerald-primary text-xs">📖 الشرح المفرداتي للبيت:</h5>
-                              <p className="text-zinc-650 leading-relaxed text-[11px] font-semibold">{explanation.meaning}</p>
+                            
+                            {/* Two-column responsive layout for major explanations */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* 1. Vocabulary explanation */}
+                              <div className="bg-[#fcfbf9] p-4.5 rounded-2xl border border-amber-200/40 space-y-2 shadow-2xs">
+                                <h5 className="font-black text-amber-700 text-xs flex items-center gap-1.5 border-b border-amber-200/40 pb-1.5">
+                                  <span>📖</span> شرح مفردات البيت وغريب ألفاظه:
+                                </h5>
+                                <p className="text-zinc-700 leading-relaxed text-[11px] font-bold whitespace-pre-line leading-loose">
+                                  {explanation.vocabularyExplanation || explanation.meaning}
+                                </p>
+                              </div>
+
+                              {/* 2. Overall meaning */}
+                              <div className="bg-[#f6faf8] p-4.5 rounded-2xl border border-emerald-primary/10 space-y-2 shadow-2xs">
+                                <h5 className="font-black text-emerald-800 text-xs flex items-center gap-1.5 border-b border-emerald-100 pb-1.5">
+                                  <span>💡</span> المعنى الإجمالي والمغزى العام:
+                                </h5>
+                                <p className="text-zinc-700 leading-relaxed text-[11px] font-bold whitespace-pre-line leading-loose">
+                                  {explanation.overallMeaning || explanation.meaning}
+                                </p>
+                              </div>
                             </div>
 
-                            {/* Parsing */}
-                            <div className="bg-[#edf6f2] p-4 rounded-xl border border-emerald-primary/5 space-y-1">
-                              <h5 className="font-black text-emerald-primary text-xs">💬 الإعراب البلاغي والنحوي للشطرين ميسرًا:</h5>
-                              <p className="font-mono text-zinc-700 text-[11px] leading-relaxed font-semibold whitespace-pre-line">{explanation.grammarAnalysis}</p>
+                            {/* Two-column responsive layout for benefits and examples */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* 3. Scientific benefits */}
+                              <div className="bg-white p-4.5 rounded-2xl border border-zinc-200/60 space-y-2 shadow-2xs">
+                                <h5 className="font-black text-emerald-primary text-xs flex items-center gap-1.5 border-b border-zinc-150 pb-1.5">
+                                  <span>📚</span> الفوائد والتعليمات المستخرجة:
+                                </h5>
+                                <ul className="space-y-1.5 pr-2.5">
+                                  {(explanation.scientificBenefits || [explanation.meaning]).map((benefit, idx) => (
+                                    <li key={idx} className="text-zinc-700 text-[11px] font-bold pr-4 relative before:content-['•'] before:absolute before:right-0 before:text-emerald-primary before:font-bold leading-relaxed">
+                                      {benefit}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+
+                              {/* 4. Practical examples */}
+                              <div className="bg-amber-50/25 p-4.5 rounded-2xl border border-amber-500/10 space-y-2 shadow-2xs">
+                                <h5 className="font-black text-amber-700 text-xs flex items-center gap-1.5 border-b border-amber-200 pb-1.5">
+                                  <span>✨</span> شواهد وأمثلة تطبيقية علمية:
+                                </h5>
+                                <ul className="space-y-1.5 pr-2.5">
+                                  {(explanation.practicalExamples || []).length > 0 ? (
+                                    explanation.practicalExamples?.map((example, idx) => (
+                                      <li key={idx} className="text-zinc-700 text-[11px] font-bold pr-4 relative before:content-['✓'] before:absolute before:right-0 before:text-amber-600 before:font-black leading-relaxed">
+                                        {example}
+                                      </li>
+                                    ))
+                                  ) : (
+                                    <li className="text-zinc-500 text-[11px] italic pr-4 relative before:content-['✓'] before:absolute before:right-0 before:text-amber-600 leading-relaxed">
+                                      {explanation.meaning}
+                                    </li>
+                                  )}
+                                </ul>
+                              </div>
+                            </div>
+
+                            {/* Grammar Analysis */}
+                            <div className="bg-[#edf6f2] p-4.5 rounded-2xl border border-emerald-primary/10 space-y-2 shadow-2xs">
+                              <h5 className="font-black text-emerald-primary text-xs border-b border-emerald-100 pb-1.5">💬 الإعراب البلاغي والنحوي للشطرين ميسرًا:</h5>
+                              <p className="font-mono text-zinc-700 text-[11px] leading-loose font-semibold whitespace-pre-line leading-loose">{explanation.grammarAnalysis}</p>
                             </div>
 
                             {/* Rules */}
                             {explanation.tajweedRules?.length > 0 && (
-                              <div className="bg-[#fcfbf9] p-4 rounded-xl border border-emerald-primary/5 space-y-1">
-                                <h5 className="font-black text-gold-accent text-xs">✨ الأحكام التجويدية والفوائد المصاحبة:</h5>
-                                <ul className="list-disc list-inside space-y-1 pr-1 text-[11px]">
+                              <div className="bg-[#fcfbf9] p-4.5 rounded-2xl border border-emerald-primary/5 space-y-2 shadow-2xs">
+                                <h5 className="font-black text-amber-600 text-xs border-b border-zinc-150 pb-1.5">✨ الأحكام التجويدية والفوائد المصاحبة:</h5>
+                                <ul className="list-disc list-inside space-y-1.5 pr-1 text-[11px]">
                                   {explanation.tajweedRules.map((rule, idx) => (
-                                    <li key={idx} className="list-none pr-3 relative before:content-['✓'] before:absolute before:right-0 before:font-bold before:text-emerald-primary">
+                                    <li key={idx} className="list-none pr-4 relative before:content-['✓'] before:absolute before:right-0 before:font-bold before:text-emerald-primary leading-relaxed">
                                       {rule}
                                     </li>
                                   ))}
@@ -366,10 +408,25 @@ export default function MatnExplainer({
                             )}
 
                             {/* Tip */}
-                            <div className="p-3.5 bg-amber-500/10 text-amber-900 rounded-xl border border-gold-accent/15">
+                            <div className="p-4 bg-amber-500/10 text-amber-900 rounded-2xl border border-gold-accent/15 shadow-2xs">
                               <h5 className="font-black text-gold-accent text-xs">💡 نصيحة دراسية للحفظ وضبط اللحن:</h5>
-                              <p className="font-serif italic text-[11px] mt-0.5">{explanation.educationalTip}</p>
+                              <p className="font-serif italic text-[11px] mt-1 pr-1.5 leading-relaxed font-bold">{explanation.educationalTip}</p>
                             </div>
+
+                            {onOpenExport && (
+                              <div className="pt-2">
+                                <button
+                                  onClick={() => onOpenExport({
+                                    verseText: `${verse.s1} ** ${verse.s2}`,
+                                    ...explanation
+                                  })}
+                                  className="w-full py-2.5 bg-emerald-primary hover:bg-emerald-800 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-101 shadow-xs border border-emerald-primary/10"
+                                >
+                                  <BookOpen className="w-4 h-4 text-emerald-light shrink-0" />
+                                  <span>تصدير هذا الشرح كملخص دراسي متميز أو إنفوجرافيك لمواقع التواصل</span>
+                                </button>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>

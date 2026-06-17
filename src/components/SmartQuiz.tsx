@@ -11,7 +11,8 @@ import {
   Sparkles, 
   BookOpen, 
   CheckSquare, 
-  Square 
+  Square,
+  FileText
 } from 'lucide-react';
 import { QuizQuestion, QuizReport } from '../types';
 import { EXCLUSIVE_MATNS } from '../data/matnsData';
@@ -19,9 +20,10 @@ import { EXCLUSIVE_MATNS } from '../data/matnsData';
 interface SmartQuizProps {
   matnName: string;
   onAddSession: (score: number, type: 'recitation' | 'quiz' | 'chat') => void;
+  onOpenExport?: (report: QuizReport) => void;
 }
 
-export default function SmartQuiz({ matnName, onAddSession }: SmartQuizProps) {
+export default function SmartQuiz({ matnName, onAddSession, onOpenExport }: SmartQuizProps) {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [grading, setGrading] = useState<boolean>(false);
@@ -339,6 +341,18 @@ export default function SmartQuiz({ matnName, onAddSession }: SmartQuizProps) {
               <h3 className="font-extrabold text-lg md:text-xl font-amiri text-center">التقويم والدرجة الكلية</h3>
               <div className="text-3xl md:text-4xl font-extrabold text-amber-300 pt-1 leading-none">{report.score}/100</div>
               <p className="text-emerald-100 text-xs font-semibold leading-relaxed pt-2 max-w-md mx-auto">{report.overallFeedback}</p>
+              
+              {onOpenExport && (
+                <div className="pt-4 relative z-20">
+                  <button
+                    onClick={() => onOpenExport(report)}
+                    className="p-2.5 px-5 bg-gradient-to-r from-amber-500 to-[#c49a45] hover:from-amber-600 hover:to-[#b0883b] text-white rounded-2xl text-xs font-black transition-all hover:scale-103 cursor-pointer shadow-md inline-flex items-center gap-1.5 border border-amber-400/20"
+                  >
+                    <FileText className="w-4 h-4 shrink-0" />
+                    <span>تصدير وطباعة الاختبار بصيغة ورقية (PDF/PNG)</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 

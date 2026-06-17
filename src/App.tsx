@@ -122,7 +122,7 @@ export default function App() {
       unsubscribe = onAuthStateChanged(realAuth, (firebaseUser) => {
         if (firebaseUser) {
           setUser(firebaseUser);
-          setProfileName(firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "");
+          setProfileName(firebaseUser.isAnonymous ? "زائر ضيف" : (firebaseUser.displayName || firebaseUser.email?.split("@")[0] || ""));
           setProfilePhoto(firebaseUser.photoURL || "");
         } else {
           setUser((existingUser: any) => {

@@ -6,7 +6,8 @@ import {
   sendPasswordResetEmail, 
   signInWithPopup, 
   GoogleAuthProvider,
-  updateProfile
+  updateProfile,
+  signInAnonymously
 } from "firebase/auth";
 import { Award, Mail, Lock, User as UserIcon, AlertCircle, CheckCircle, Sparkles, LogIn } from "lucide-react";
 
@@ -22,6 +23,7 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showDomainHelp, setShowDomainHelp] = useState(false);
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -45,19 +47,26 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
     }
   };
 
-  const handleGuestLogin = () => {
+  const handleGuestLogin = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const guestUser = {
-        uid: "guest_user_" + Math.random().toString(36).substring(2, 8),
-        displayName: "زائر ضيف",
-        email: "guest@tajweed.app",
-        photoURL: "",
-        isAnonymous: true
-      };
-      onAuthSuccess(guestUser);
+      if (isFirebaseReady && auth) {
+        const result = await signInAnonymously(auth);
+        onAuthSuccess(result.user);
+      } else {
+        const guestUser = {
+          uid: "guest_user_" + Math.random().toString(36).substring(2, 8),
+          displayName: "زائر ضيف",
+          email: "guest@tajweed.app",
+          photoURL: "",
+          isAnonymous: true
+        };
+        onAuthSuccess(guestUser);
+      }
     } catch (err: any) {
-      setError("فشل الدخول كضيف.");
+      console.error(err);
+      setError("فشل الدخول كضيف: يرجى تفعيل تسجيل الدخول المجهول (Anonymous Auth) في لوحة تحكم Firebase.");
     } finally {
       setLoading(false);
     }
@@ -328,6 +337,46 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
           >
             ← العودة لصفحة تسجيل الدخول
           </button>
+        )}
+
+        <hr className="border-zinc-100 my-2" />
+        
+        <div className="text-center pt-1">
+          <button
+            type="button"
+            onClick={() => setShowDomainHelp(!showDomainHelp)}
+            className="text-[11px] text-amber-600 font-black hover:underline inline-flex items-center gap-1 cursor-pointer"
+          >
+            ⚠️ تواجه مشكلة تسجيل الدخول على Vercel؟ اضغط لمعرفة الحل
+          </button>
+        </div>
+
+        {showDomainHelp && (
+          <div className="bg-amber-50/70 p-4 rounded-2xl border border-amber-200/50 text-right text-xs space-y-3 mt-3 animate-fade-in relative z-10 overflow-hidden">
+            <h4 className="font-extrabold text-amber-900 text-xs">🛠️ تفعيل الدخول لجميع المستخدمين على Vercel:</h4>
+            <p className="text-zinc-600 leading-relaxed text-[11px]">
+              عند نشرك التطبيق على نطاقك الخاص في Vercel: <span className="font-mono bg-white px-1.5 py-0.5 rounded border border-amber-200 text-[10px] font-bold">walyelamer2026.vercel.app</span>، يرجى تهيئة حسابك في Firebase بالتالى ليستطيع الجميع الدخول:
+            </p>
+            <ol className="list-decimal list-inside space-y-2 text-zinc-700 text-[11px] font-semibold leading-relaxed">
+              <li>
+                <strong>تداول وسائل الدخول:</strong> توجّه إلى <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer" className="text-emerald-700 underline font-bold">منصة تحكم Firebase</a> ثم اختر مشروعك المسمى <span className="font-mono text-emerald-primary bg-white px-1 leading-none rounded border border-zinc-200 text-[10px]">gen-lang-client-0492639450</span>، ثم اختر <strong>Authentication</strong> &gt; <strong>Sign-in method</strong>، ثم اضغط تفعيل لكل من:
+                <div className="flex gap-2 mt-1 mr-4 font-extrabold text-[10px]">
+                  <span className="bg-zinc-100 text-zinc-700 px-1.5 py-0.5 rounded">البريد وكلمة السر (Email)</span>
+                  <span className="bg-zinc-100 text-zinc-700 px-1.5 py-0.5 rounded">حساب جوجل (Google)</span>
+                  <span className="bg-zinc-100 text-zinc-700 px-1.5 py-0.5 rounded">تسجيل الزائر (Anonymous)</span>
+                </div>
+              </li>
+              <li>
+                <strong>إضافة نطاق Vercel المعتمد:</strong> من تبويب <strong>Settings</strong> &gt; <strong>Authorized domains</strong> في صفحة الـ Authentication نفسها، اضغط على <strong>Add domain</strong> ثم أضف النطاق التالي بدقة: <span className="font-mono bg-emerald-light/50 text-emerald-primary px-1.5 py-0.5 rounded border border-emerald-primary/10 select-all text-[10px] font-bold">walyelamer2026.vercel.app</span>
+              </li>
+              <li>
+                <strong>قواعد الأجهزة وقواعد البيانات:</strong> لقد قمنا ببرمجة ونشر قواعد الحماية السليمة الكاملة لجميع المستخدمين، فبمجرد إتمام الخطوات رقم 1 و 2 أعلاه سيعمل تسجيل الدخول على نطاقك الخارجي لجميع حزم الزوار والمستخدمين فوراً!
+              </li>
+            </ol>
+            <p className="text-emerald-800 text-[10px] font-bold leading-normal pt-1 border-t border-amber-200/30">
+              💡 حل سريع ومباشر: يمكنك استخدام خيار <strong>"الدخول كضيف"</strong> لتجربة كافة مميزات المنصة والتصحيح الصوتي وتسميع المتون وحفظ الإنجازات مؤقتاً أيضاً.
+            </p>
+          </div>
         )}
 
       </div>

@@ -17,7 +17,7 @@ let geminiClient: GoogleGenAI | null = null;
 
 function getGeminiClient(): GoogleGenAI {
   if (!geminiClient) {
-    const apiKey = "AQ.Ab8RN6J2kwpReGH4b041vlPFD54It6C94FdhvPx1Xukei7fQIg" || process.env.GEMINI_API_KEY;
+    const apiKey = "AQ.Ab8RN6J2kwpReGH4b041vlPFD54It6C94FdhvPx1Xukei7fQIg";
     if (!apiKey) {
       throw new Error(
         "GEMINI_API_KEY is not defined. Please configure it in your Secrets/Environment variables.",
@@ -45,9 +45,7 @@ async function callGeminiWithRetry(
 
   // Rotation of model names to bypass quota 429 or 503 unavailability limits
   const models = [
-    "gemini-3.5-flash",
-    "gemini-flash-latest",
-    "gemini-3.1-flash",
+    "gemini-1.5-flash",
   ];
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -279,13 +277,14 @@ function getFallbackQuiz(
   chapter?: string,
   count: number = 5,
 ) {
+  const safeMatnName = matnName || "";
   const normName =
     Object.keys(EXCLUSIVE_MATNS).find(
-      (k) => k.includes(matnName) || matnName.includes(k),
+      (k) => k.includes(safeMatnName) || safeMatnName.includes(k),
     ) || "تحفة الأطفال";
-  const original = EXCLUSIVE_MATNS[normName];
+  const original = EXCLUSIVE_MATNS[normName] || EXCLUSIVE_MATNS["تحفة الأطفال"];
 
-  let filteredVerses = original.verses;
+  let filteredVerses = original?.verses || [];
   if (chapter && chapter !== "كامل المتن القواعد") {
     filteredVerses = original.verses.filter(
       (v) => v.chapter.includes(chapter) || chapter.includes(v.chapter),
@@ -350,7 +349,7 @@ function getFallbackQuiz(
 }
 
 function getFallbackBotReply(message: string, matnName?: string) {
-  const normMsg = message.toLowerCase();
+  const normMsg = String(message || "").toLowerCase();
 
   let text = `مرحباً بك يا طالب العلم الشغوف بحفظ ودراسة المنظومات التجويدية والشرعية المطهرة. لضيق مؤقت في شبكة الاتصال، أجيبك من فرع المرشد المساعد الحافظ:`;
 
@@ -391,7 +390,7 @@ function getFallbackBotReply(message: string, matnName?: string) {
 ما القاعدة أو البيت الذي تود تدارسه معاً الآن؟`;
   }
 
-  return { reply: text };
+  return { text };
 }
 
 function getFallbackGradeQuiz(matnName: string, questions: any[]) {
@@ -440,9 +439,10 @@ function getFallbackCorrectRecitation(
   userSpeech: string,
   expectedMatn: string,
 ) {
+  const safeSpeech = String(userSpeech || "");
   const score = Math.min(
     100,
-    Math.max(40, Math.round(100 - userSpeech.split(" ").length * 5)),
+    Math.max(40, Math.round(100 - safeSpeech.split(" ").length * 5)),
   );
   return {
     detectedMatn: expectedMatn || "متن ممتد تجويداً",
@@ -990,19 +990,12 @@ app.post("/api/ask-bot", async (req, res) => {
         "عذرًا، لم أستطع توليد رد في الوقت الحالي. يرجى إعادة المحاولة.",
     });
   } catch (error: any) {
-    console.warn(
-      "[Ask Bot Status]: Falling back to smart offline conversational agent due to rate limits or API availability:",
-      error?.message || error,
-    );
+    console.error("Ask Bot Error:", error);
     try {
       const reply = getFallbackBotReply(message, matnName);
       res.json(reply);
     } catch (fallbackError: any) {
-      handleAPIError(
-        res,
-        error,
-        "نعتذر، واجه المساعد التفاعلي صعوبة في دمج ردودكم حالياً.",
-      );
+      res.status(500).json({ error: "Internal Server Error", details: error?.message || String(error) });
     }
   }
 });

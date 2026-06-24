@@ -1,28 +1,28 @@
 import { initializeApp } from "firebase/app";
-import { 
-  getAuth, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
   sendPasswordResetEmail,
   signInWithPopup,
   GoogleAuthProvider,
   User as FirebaseUser,
-  onAuthStateChanged
+  onAuthStateChanged,
 } from "firebase/auth";
-import { 
-  getFirestore, 
-  doc, 
-  setDoc, 
-  getDoc, 
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
   getDocs,
-  collection, 
-  addDoc, 
-  query, 
-  where, 
-  orderBy, 
+  collection,
+  addDoc,
+  query,
+  where,
+  orderBy,
   limit,
-  updateDoc
+  updateDoc,
 } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
@@ -74,20 +74,27 @@ class MockAuth {
     }
   }
 
-  get auth() { return this; }
-  get currentUserState() { return this.currentUser; }
+  get auth() {
+    return this;
+  }
+  get currentUserState() {
+    return this.currentUser;
+  }
 
   onAuthStateChanged(callback: (user: any) => void) {
     this.listeners.push(callback);
     callback(this.currentUser);
     return () => {
-      this.listeners = this.listeners.filter(l => l !== callback);
+      this.listeners = this.listeners.filter((l) => l !== callback);
     };
   }
 
   private triggerChange() {
-    localStorage.setItem("tajaweed_mock_user", this.currentUser ? JSON.stringify(this.currentUser) : "");
-    this.listeners.forEach(l => l(this.currentUser));
+    localStorage.setItem(
+      "tajaweed_mock_user",
+      this.currentUser ? JSON.stringify(this.currentUser) : "",
+    );
+    this.listeners.forEach((l) => l(this.currentUser));
   }
 
   async signInWithEmailAndPassword(email: string, pass: string) {
@@ -97,7 +104,7 @@ class MockAuth {
       email: email,
       displayName: email.split("@")[0],
       photoURL: "",
-      emailVerified: true
+      emailVerified: true,
     };
     this.triggerChange();
     return { user: this.currentUser };
@@ -109,7 +116,7 @@ class MockAuth {
       email: email,
       displayName: email.split("@")[0],
       photoURL: "",
-      emailVerified: true
+      emailVerified: true,
     };
     this.triggerChange();
     return { user: this.currentUser };
@@ -121,7 +128,7 @@ class MockAuth {
       email: "quranvoice6254@gmail.com",
       displayName: "قارئ تجاويد",
       photoURL: "",
-      emailVerified: true
+      emailVerified: true,
     };
     this.triggerChange();
     return { user: this.currentUser };
@@ -159,7 +166,11 @@ class MockFirestore {
   async addDocument(collectionName: string, payload: any) {
     const list = this.loadData(collectionName);
     const docId = Math.random().toString(36).substring(3, 11);
-    const newDoc = { id: docId, ...payload, createdAt: new Date().toISOString() };
+    const newDoc = {
+      id: docId,
+      ...payload,
+      createdAt: new Date().toISOString(),
+    };
     list.unshift(newDoc);
     this.saveData(collectionName, list);
     return newDoc;
@@ -167,23 +178,32 @@ class MockFirestore {
 
   async setDocument(collectionName: string, docId: string, payload: any) {
     const list = this.loadData(collectionName);
-    const filtered = list.filter(d => d.id !== docId);
-    filtered.push({ id: docId, ...payload, updatedAt: new Date().toISOString() });
+    const filtered = list.filter((d) => d.id !== docId);
+    filtered.push({
+      id: docId,
+      ...payload,
+      updatedAt: new Date().toISOString(),
+    });
     this.saveData(collectionName, filtered);
   }
 
   async getDocument(collectionName: string, docId: string) {
     const list = this.loadData(collectionName);
-    return list.find(d => d.id === docId) || null;
+    return list.find((d) => d.id === docId) || null;
   }
 
   async getCollection(collectionName: string) {
     return this.loadData(collectionName);
   }
 
-  async queryCollection(collectionName: string, field: string, operator: string, value: any) {
+  async queryCollection(
+    collectionName: string,
+    field: string,
+    operator: string,
+    value: any,
+  ) {
     const list = this.loadData(collectionName);
-    return list.filter(item => {
+    return list.filter((item) => {
       if (operator === "==") return item[field] === value;
       return true;
     });
@@ -195,12 +215,12 @@ export const mockDb = new MockFirestore();
 
 // Standard handle function to avoid unhandled permission issues
 export enum OperationType {
-  CREATE = 'create',
-  UPDATE = 'update',
-  DELETE = 'delete',
-  LIST = 'list',
-  GET = 'get',
-  WRITE = 'write',
+  CREATE = "create",
+  UPDATE = "update",
+  DELETE = "delete",
+  LIST = "list",
+  GET = "get",
+  WRITE = "write",
 }
 
 export interface FirestoreErrorInfo {
@@ -213,7 +233,11 @@ export interface FirestoreErrorInfo {
   };
 }
 
-export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+export function handleFirestoreError(
+  error: unknown,
+  operationType: OperationType,
+  path: string | null,
+) {
   const errInfo: FirestoreErrorInfo = {
     error: error instanceof Error ? error.message : String(error),
     authInfo: {
@@ -221,9 +245,9 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
       email: isFirebaseReady ? authInstance?.currentUser?.email : "local",
     },
     operationType,
-    path
+    path,
   };
-  console.error('Firestore Hardened Error: ', JSON.stringify(errInfo));
+  console.error("Firestore Hardened Error: ", JSON.stringify(errInfo));
   throw new Error(JSON.stringify(errInfo));
 }
 

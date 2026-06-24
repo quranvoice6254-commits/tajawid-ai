@@ -1,22 +1,33 @@
 import React, { useState } from "react";
 import { auth, mockAuth, isFirebaseReady } from "../lib/firebase";
-import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  sendPasswordResetEmail, 
-  signInWithPopup, 
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  signInWithPopup,
   GoogleAuthProvider,
   updateProfile,
-  signInAnonymously
+  signInAnonymously,
 } from "firebase/auth";
-import { Award, Mail, Lock, User as UserIcon, AlertCircle, CheckCircle, Sparkles, LogIn } from "lucide-react";
+import {
+  Award,
+  Mail,
+  Lock,
+  User as UserIcon,
+  AlertCircle,
+  CheckCircle,
+  Sparkles,
+  LogIn,
+} from "lucide-react";
 
 interface AuthScreenProps {
   onAuthSuccess: (user: any) => void;
 }
 
 export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
-  const [activeTab, setActiveTab] = useState<"login" | "register" | "forgot">("login");
+  const [activeTab, setActiveTab] = useState<"login" | "register" | "forgot">(
+    "login",
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -41,7 +52,9 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
       }
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "حدث خطأ أثناء تسجيل الدخول بالرقم الموحد من جوجل.");
+      setError(
+        err.message || "حدث خطأ أثناء تسجيل الدخول بالرقم الموحد من جوجل.",
+      );
     } finally {
       setLoading(false);
     }
@@ -60,13 +73,15 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
           displayName: "زائر ضيف",
           email: "guest@tajweed.app",
           photoURL: "",
-          isAnonymous: true
+          isAnonymous: true,
         };
         onAuthSuccess(guestUser);
       }
     } catch (err: any) {
       console.error(err);
-      setError("فشل الدخول كضيف: يرجى تفعيل تسجيل الدخول المجهول (Anonymous Auth) في لوحة تحكم Firebase.");
+      setError(
+        "فشل الدخول كضيف: يرجى تفعيل تسجيل الدخول المجهول (Anonymous Auth) في لوحة تحكم Firebase.",
+      );
     } finally {
       setLoading(false);
     }
@@ -81,10 +96,17 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
     try {
       if (activeTab === "login") {
         if (isFirebaseReady && auth) {
-          const result = await signInWithEmailAndPassword(auth, email, password);
+          const result = await signInWithEmailAndPassword(
+            auth,
+            email,
+            password,
+          );
           onAuthSuccess(result.user);
         } else {
-          const result = await mockAuth.signInWithEmailAndPassword(email, password);
+          const result = await mockAuth.signInWithEmailAndPassword(
+            email,
+            password,
+          );
           onAuthSuccess(result.user);
         }
       } else if (activeTab === "register") {
@@ -92,11 +114,18 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
           throw new Error("يرجى إدخال الاسم كاملاً");
         }
         if (isFirebaseReady && auth) {
-          const result = await createUserWithEmailAndPassword(auth, email, password);
+          const result = await createUserWithEmailAndPassword(
+            auth,
+            email,
+            password,
+          );
           await updateProfile(result.user, { displayName: name });
           onAuthSuccess(result.user);
         } else {
-          const result = await mockAuth.createUserWithEmailAndPassword(email, password);
+          const result = await mockAuth.createUserWithEmailAndPassword(
+            email,
+            password,
+          );
           await mockAuth.updateProfile({ displayName: name });
           onAuthSuccess({ ...result.user, displayName: name });
         }
@@ -106,13 +135,18 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
         } else {
           await mockAuth.sendPasswordResetEmail(email);
         }
-        setInfo("✅ تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني بنجاح.");
+        setInfo(
+          "✅ تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني بنجاح.",
+        );
         setTimeout(() => setActiveTab("login"), 4000);
       }
     } catch (err: any) {
       console.error(err);
       let errMsg = err.message;
-      if (err.code === "auth/invalid-credential" || err.code === "auth/wrong-password") {
+      if (
+        err.code === "auth/invalid-credential" ||
+        err.code === "auth/wrong-password"
+      ) {
         errMsg = "البريد الإلكتروني أو كلمة المرور غير صحيحة.";
       } else if (err.code === "auth/email-already-in-use") {
         errMsg = "هذا البريد الإلكتروني مسجل بالفعل لدينا.";
@@ -128,38 +162,42 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f7f5] flex items-center justify-center p-4" dir="rtl">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl border border-emerald-primary/10 overflow-hidden relative p-8 space-y-6">
-        
+    <div
+      className="min-h-screen bg-bg-primary flex items-center justify-center p-4"
+      dir="rtl"
+    >
+      <div className="w-full max-w-md bg-bg-secondary rounded-3xl shadow-xl border border-brand-primary/10 overflow-hidden relative p-8 space-y-6">
         {/* Top brand circle background */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-light/30 rounded-full blur-2xl -z-10" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-light/30 rounded-full blur-2xl -z-10" />
         <div className="absolute bottom-0 left-0 w-36 h-36 bg-amber-50 rounded-full blur-3xl -z-10" />
 
         {/* Brand logo & tagline */}
         <div className="text-center space-y-2">
-          <div className="w-16 h-16 bg-emerald-primary text-white rounded-2xl mx-auto flex items-center justify-center shadow-lg relative">
+          <div className="w-16 h-16 bg-brand-primary text-white rounded-2xl mx-auto flex items-center justify-center shadow-lg relative">
             <Award className="w-8 h-8 text-amber-300" />
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-amber-500 rounded-full border border-white flex items-center justify-center">
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-amber-500 rounded-full border border-bg-secondary flex items-center justify-center">
               <Sparkles className="w-2.5 h-2.5 text-white" />
             </div>
           </div>
           <div>
-            <h1 className="text-3xl font-black text-emerald-primary font-amiri tracking-wide mt-2">
+            <h1 className="text-3xl font-black text-brand-primary font-amiri tracking-wide mt-2">
               تجاويد
             </h1>
             <p className="text-xs bg-amber-100 text-gold-accent font-extrabold px-3 py-1 rounded-full inline-block mt-1">
               ✨ كرر حتى تتقن
             </p>
           </div>
-          <p className="text-xs text-zinc-500 font-bold max-w-sm mx-auto pt-1 leading-relaxed">
-            المنصة الذكية الرائدة لتسميع المتون وضبط قواعد التجويد والتوحيد باستخدام الذكاء الاصطناعي التفاعلي.
+          <p className="text-xs text-text-muted font-bold max-w-sm mx-auto pt-1 leading-relaxed">
+            المنصة الذكية الرائدة لتسميع المتون وضبط قواعد التجويد والتوحيد
+            باستخدام الذكاء الاصطناعي التفاعلي.
           </p>
         </div>
 
         {/* Sandbox Indicator if not cloud-configured */}
         {!isFirebaseReady && (
           <div className="bg-amber-50 text-[10px] text-amber-700 font-bold p-2.5 rounded-xl border border-amber-205 text-center leading-relaxed">
-            📢 جاري العمل بوضع الرمل المحلي الآمن (Sandbox Mode). يمكنك استخدام كافة الصلاحيات على الفور.
+            📢 جاري العمل بوضع الرمل المحلي الآمن (Sandbox Mode). يمكنك استخدام
+            كافة الصلاحيات على الفور.
           </div>
         )}
 
@@ -172,7 +210,7 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
         )}
 
         {info && (
-          <div className="p-3 bg-emerald-50 text-emerald-800 rounded-2xl border border-emerald-100 text-xs font-semibold flex items-center gap-2">
+          <div className="p-3 bg-brand-light text-brand-primary rounded-2xl border border-emerald-100 text-xs font-semibold flex items-center gap-2">
             <CheckCircle className="w-4 h-4 shrink-0 text-emerald-600" />
             <span className="text-right leading-relaxed">{info}</span>
           </div>
@@ -180,23 +218,29 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
 
         {/* Authentication forms */}
         {activeTab !== "forgot" && (
-          <div className="flex border-b border-zinc-100 pb-1">
+          <div className="flex border-b border-border-primary pb-1">
             <button
-              onClick={() => { setActiveTab("login"); setError(null); }}
+              onClick={() => {
+                setActiveTab("login");
+                setError(null);
+              }}
               className={`flex-1 text-center pb-2.5 text-xs font-black transition-all ${
-                activeTab === "login" 
-                  ? "border-b-2 border-emerald-primary text-emerald-primary" 
-                  : "text-zinc-400 hover:text-zinc-600"
+                activeTab === "login"
+                  ? "border-b-2 border-brand-primary text-brand-primary"
+                  : "text-text-muted hover:text-text-secondary"
               }`}
             >
               تسجيل الدخول
             </button>
             <button
-              onClick={() => { setActiveTab("register"); setError(null); }}
+              onClick={() => {
+                setActiveTab("register");
+                setError(null);
+              }}
               className={`flex-1 text-center pb-2.5 text-xs font-black transition-all ${
-                activeTab === "register" 
-                  ? "border-b-2 border-emerald-primary text-emerald-primary" 
-                  : "text-zinc-400 hover:text-zinc-600"
+                activeTab === "register"
+                  ? "border-b-2 border-brand-primary text-brand-primary"
+                  : "text-text-muted hover:text-text-secondary"
               }`}
             >
               حساب جديد
@@ -207,64 +251,73 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
         <form onSubmit={handleEmailAction} className="space-y-4">
           {activeTab === "forgot" && (
             <div className="space-y-1">
-              <h3 className="font-extrabold text-sm text-zinc-800 text-right">نسيت كلمة المرور؟</h3>
-              <p className="text-[11px] text-zinc-400 leading-relaxed text-right pb-2">
-                أدخل بريدك الإلكتروني وسيقوم النظام بإرسال رابط تعيين كلمة المرور المخصص لك آلياً ومباشرة.
+              <h3 className="font-extrabold text-sm text-text-primary text-right">
+                نسيت كلمة المرور؟
+              </h3>
+              <p className="text-[11px] text-text-muted leading-relaxed text-right pb-2">
+                أدخل بريدك الإلكتروني وسيقوم النظام بإرسال رابط تعيين كلمة
+                المرور المخصص لك آلياً ومباشرة.
               </p>
             </div>
           )}
 
           {activeTab === "register" && (
             <div className="space-y-1.5 text-right">
-              <label className="text-[10px] font-black text-zinc-400 uppercase tracking-wider block">الأسم الكامل</label>
+              <label className="text-[10px] font-black text-text-muted uppercase tracking-wider block">
+                الأسم الكامل
+              </label>
               <div className="relative">
-                <UserIcon className="absolute right-3 top-2.5 w-4.5 h-4.5 text-zinc-400" />
+                <UserIcon className="absolute right-3 top-2.5 w-4.5 h-4.5 text-text-muted" />
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="محمد بن أحمد..."
-                  className="w-full pr-10 pl-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:border-emerald-primary text-right font-medium"
+                  className="w-full pr-10 pl-3 py-2 text-xs bg-bg-tertiary border border-border-primary rounded-xl outline-none focus:border-brand-primary text-right font-medium"
                 />
               </div>
             </div>
           )}
 
           <div className="space-y-1.5 text-right">
-            <label className="text-[10px] font-black text-zinc-400 uppercase tracking-wider block">البريد الإلكتروني</label>
+            <label className="text-[10px] font-black text-text-muted uppercase tracking-wider block">
+              البريد الإلكتروني
+            </label>
             <div className="relative">
-              <Mail className="absolute right-3 top-2.5 w-4.5 h-4.5 text-zinc-400" />
+              <Mail className="absolute right-3 top-2.5 w-4.5 h-4.5 text-text-muted" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@domain.com"
-                className="w-full pr-10 pl-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:border-emerald-primary text-right font-medium"
+                className="w-full pr-10 pl-3 py-2 text-xs bg-bg-tertiary border border-border-primary rounded-xl outline-none focus:border-brand-primary text-right font-medium"
               />
             </div>
           </div>
 
           {activeTab !== "forgot" && (
             <div className="space-y-1.5 text-right">
-              <label className="text-[10px] font-black text-zinc-400 uppercase tracking-wider block">كلمة المرور</label>
+              <label className="text-[10px] font-black text-text-muted uppercase tracking-wider block">
+                كلمة المرور
+              </label>
               <div className="relative">
-                <Lock className="absolute right-3 top-2.5 w-4.5 h-4.5 text-zinc-400" />
+                <Lock className="absolute right-3 top-2.5 w-4.5 h-4.5 text-text-muted" />
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pr-10 pl-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-xl outline-none focus:border-emerald-primary text-right font-medium"
+                  className="w-full pr-10 pl-3 py-2 text-xs bg-bg-tertiary border border-border-primary rounded-xl outline-none focus:border-brand-primary text-right font-medium"
                 />
               </div>
               {activeTab === "login" && (
                 <button
                   type="button"
                   onClick={() => setActiveTab("forgot")}
-                  className="text-[10px] text-emerald-primary font-bold hover:underline float-left mt-0.5"
+                  className="text-[10px] text-brand-primary font-bold hover:underline float-left mt-0.5"
                 >
                   نسيت كلمة المرور؟
                 </button>
@@ -275,26 +328,32 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 bg-emerald-primary text-white font-extrabold text-xs rounded-xl shadow-md hover:bg-emerald-900 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
+            className="w-full py-2.5 bg-brand-primary text-white font-extrabold text-xs rounded-xl shadow-md hover:bg-emerald-900 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
           >
             <LogIn className="w-4 h-4" />
-            {loading ? "جاري المعالجة..." : activeTab === "login" ? "سجل الدخول" : activeTab === "register" ? "إنشاء حساب جدید" : "إرسال رابط الاستعادة"}
+            {loading
+              ? "جاري المعالجة..."
+              : activeTab === "login"
+                ? "سجل الدخول"
+                : activeTab === "register"
+                  ? "إنشاء حساب جدید"
+                  : "إرسال رابط الاستعادة"}
           </button>
         </form>
 
         {/* Separator */}
         {activeTab !== "forgot" && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between text-zinc-350 text-[10px] font-bold">
-              <span className="flex-1 h-px bg-zinc-100" />
+            <div className="flex items-center justify-between text-text-secondary text-[10px] font-bold">
+              <span className="flex-1 h-px bg-bg-tertiary" />
               <span className="px-3 uppercase">أو من خلال</span>
-              <span className="flex-1 h-px bg-zinc-100" />
+              <span className="flex-1 h-px bg-bg-tertiary" />
             </div>
 
             <button
               onClick={handleGoogleLogin}
               disabled={loading}
-              className="w-full py-2 bg-white border border-zinc-200 hover:bg-zinc-50 justify-center flex items-center gap-2 rounded-xl text-xs font-bold text-zinc-700 hover:scale-101 transition-all"
+              className="w-full py-2 bg-bg-secondary border border-border-primary hover:bg-bg-tertiary justify-center flex items-center gap-2 rounded-xl text-xs font-bold text-text-secondary hover:scale-101 transition-all"
             >
               <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                 <path
@@ -321,7 +380,7 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
               type="button"
               onClick={handleGuestLogin}
               disabled={loading}
-              className="w-full py-2.5 bg-emerald-light/30 hover:bg-emerald-light/50 text-emerald-primary justify-center flex items-center gap-2 rounded-xl text-xs font-black transition-all border border-emerald-primary/10 hover:scale-101"
+              className="w-full py-2.5 bg-brand-light/30 hover:bg-brand-light/50 text-brand-primary justify-center flex items-center gap-2 rounded-xl text-xs font-black transition-all border border-brand-primary/10 hover:scale-101"
             >
               <UserIcon className="w-4 h-4" />
               <span>الدخول كضيف (حساب زائر محلي)</span>
@@ -332,15 +391,18 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
         {activeTab === "forgot" && (
           <button
             type="button"
-            onClick={() => { setActiveTab("login"); setError(null); }}
-            className="text-xs text-zinc-400 font-bold hover:text-zinc-600 block text-center w-full"
+            onClick={() => {
+              setActiveTab("login");
+              setError(null);
+            }}
+            className="text-xs text-text-muted font-bold hover:text-text-secondary block text-center w-full"
           >
             ← العودة لصفحة تسجيل الدخول
           </button>
         )}
 
-        <hr className="border-zinc-100 my-2" />
-        
+        <hr className="border-border-primary my-2" />
+
         <div className="text-center pt-1">
           <button
             type="button"
@@ -353,32 +415,69 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
 
         {showDomainHelp && (
           <div className="bg-amber-50/70 p-4 rounded-2xl border border-amber-200/50 text-right text-xs space-y-3 mt-3 animate-fade-in relative z-10 overflow-hidden">
-            <h4 className="font-extrabold text-amber-900 text-xs">🛠️ تفعيل الدخول لجميع المستخدمين على Vercel:</h4>
-            <p className="text-zinc-600 leading-relaxed text-[11px]">
-              عند نشرك التطبيق على نطاقك الخاص في Vercel: <span className="font-mono bg-white px-1.5 py-0.5 rounded border border-amber-200 text-[10px] font-bold">walyelamer2026.vercel.app</span>، يرجى تهيئة حسابك في Firebase بالتالى ليستطيع الجميع الدخول:
+            <h4 className="font-extrabold text-amber-900 text-xs">
+              🛠️ تفعيل الدخول لجميع المستخدمين على Vercel:
+            </h4>
+            <p className="text-text-secondary leading-relaxed text-[11px]">
+              عند نشرك التطبيق على نطاقك الخاص في Vercel:{" "}
+              <span className="font-mono bg-bg-secondary px-1.5 py-0.5 rounded border border-amber-200 text-[10px] font-bold">
+                walyelamer2026.vercel.app
+              </span>
+              ، يرجى تهيئة حسابك في Firebase بالتالى ليستطيع الجميع الدخول:
             </p>
-            <ol className="list-decimal list-inside space-y-2 text-zinc-700 text-[11px] font-semibold leading-relaxed">
+            <ol className="list-decimal list-inside space-y-2 text-text-secondary text-[11px] font-semibold leading-relaxed">
               <li>
-                <strong>تداول وسائل الدخول:</strong> توجّه إلى <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer" className="text-emerald-700 underline font-bold">منصة تحكم Firebase</a> ثم اختر مشروعك المسمى <span className="font-mono text-emerald-primary bg-white px-1 leading-none rounded border border-zinc-200 text-[10px]">gen-lang-client-0492639450</span>، ثم اختر <strong>Authentication</strong> &gt; <strong>Sign-in method</strong>، ثم اضغط تفعيل لكل من:
+                <strong>تداول وسائل الدخول:</strong> توجّه إلى{" "}
+                <a
+                  href="https://console.firebase.google.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-brand-primary underline font-bold"
+                >
+                  منصة تحكم Firebase
+                </a>{" "}
+                ثم اختر مشروعك المسمى{" "}
+                <span className="font-mono text-brand-primary bg-bg-secondary px-1 leading-none rounded border border-border-primary text-[10px]">
+                  gen-lang-client-0492639450
+                </span>
+                ، ثم اختر <strong>Authentication</strong> &gt;{" "}
+                <strong>Sign-in method</strong>، ثم اضغط تفعيل لكل من:
                 <div className="flex gap-2 mt-1 mr-4 font-extrabold text-[10px]">
-                  <span className="bg-zinc-100 text-zinc-700 px-1.5 py-0.5 rounded">البريد وكلمة السر (Email)</span>
-                  <span className="bg-zinc-100 text-zinc-700 px-1.5 py-0.5 rounded">حساب جوجل (Google)</span>
-                  <span className="bg-zinc-100 text-zinc-700 px-1.5 py-0.5 rounded">تسجيل الزائر (Anonymous)</span>
+                  <span className="bg-bg-tertiary text-text-secondary px-1.5 py-0.5 rounded">
+                    البريد وكلمة السر (Email)
+                  </span>
+                  <span className="bg-bg-tertiary text-text-secondary px-1.5 py-0.5 rounded">
+                    حساب جوجل (Google)
+                  </span>
+                  <span className="bg-bg-tertiary text-text-secondary px-1.5 py-0.5 rounded">
+                    تسجيل الزائر (Anonymous)
+                  </span>
                 </div>
               </li>
               <li>
-                <strong>إضافة نطاق Vercel المعتمد:</strong> من تبويب <strong>Settings</strong> &gt; <strong>Authorized domains</strong> في صفحة الـ Authentication نفسها، اضغط على <strong>Add domain</strong> ثم أضف النطاق التالي بدقة: <span className="font-mono bg-emerald-light/50 text-emerald-primary px-1.5 py-0.5 rounded border border-emerald-primary/10 select-all text-[10px] font-bold">walyelamer2026.vercel.app</span>
+                <strong>إضافة نطاق Vercel المعتمد:</strong> من تبويب{" "}
+                <strong>Settings</strong> &gt;{" "}
+                <strong>Authorized domains</strong> في صفحة الـ Authentication
+                نفسها، اضغط على <strong>Add domain</strong> ثم أضف النطاق التالي
+                بدقة:{" "}
+                <span className="font-mono bg-brand-light/50 text-brand-primary px-1.5 py-0.5 rounded border border-brand-primary/10 select-all text-[10px] font-bold">
+                  walyelamer2026.vercel.app
+                </span>
               </li>
               <li>
-                <strong>قواعد الأجهزة وقواعد البيانات:</strong> لقد قمنا ببرمجة ونشر قواعد الحماية السليمة الكاملة لجميع المستخدمين، فبمجرد إتمام الخطوات رقم 1 و 2 أعلاه سيعمل تسجيل الدخول على نطاقك الخارجي لجميع حزم الزوار والمستخدمين فوراً!
+                <strong>قواعد الأجهزة وقواعد البيانات:</strong> لقد قمنا ببرمجة
+                ونشر قواعد الحماية السليمة الكاملة لجميع المستخدمين، فبمجرد
+                إتمام الخطوات رقم 1 و 2 أعلاه سيعمل تسجيل الدخول على نطاقك
+                الخارجي لجميع حزم الزوار والمستخدمين فوراً!
               </li>
             </ol>
-            <p className="text-emerald-800 text-[10px] font-bold leading-normal pt-1 border-t border-amber-200/30">
-              💡 حل سريع ومباشر: يمكنك استخدام خيار <strong>"الدخول كضيف"</strong> لتجربة كافة مميزات المنصة والتصحيح الصوتي وتسميع المتون وحفظ الإنجازات مؤقتاً أيضاً.
+            <p className="text-brand-primary text-[10px] font-bold leading-normal pt-1 border-t border-amber-200/30">
+              💡 حل سريع ومباشر: يمكنك استخدام خيار{" "}
+              <strong>"الدخول كضيف"</strong> لتجربة كافة مميزات المنصة والتصحيح
+              الصوتي وتسميع المتون وحفظ الإنجازات مؤقتاً أيضاً.
             </p>
           </div>
         )}
-
       </div>
     </div>
   );

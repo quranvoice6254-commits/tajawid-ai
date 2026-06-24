@@ -34,7 +34,7 @@ export interface ExplanationResult {
 
 export interface QuizQuestion {
   id: number;
-  type: 'multiple-choice' | 'true-false' | 'fill-in-blank' | 'explanation';
+  type: "multiple-choice" | "true-false" | "fill-in-blank" | "explanation";
   questionText: string;
   options?: string[]; // For MCQ
   correctAnswer: string;
@@ -52,7 +52,12 @@ export interface QuizReport {
 }
 
 export interface RecitationError {
-  type: 'omission' | 'addition' | 'substitution' | 'wrong_spelling' | 'tajweed_or_diacritics';
+  type:
+    | "omission"
+    | "addition"
+    | "substitution"
+    | "wrong_spelling"
+    | "tajweed_or_diacritics";
   wordInUserText: string;
   wordInCorrectText: string;
   description: string;
@@ -71,7 +76,7 @@ export interface RecitationCorrection {
 export interface LearningSession {
   id: string;
   matnName: string;
-  type: 'recitation' | 'quiz' | 'chat';
+  type: "recitation" | "quiz" | "chat";
   date: string;
   score: number;
 }
@@ -80,7 +85,7 @@ export interface PerformanceStats {
   totalRecitations: number;
   averageMastery: number; // 0 - 100
   commonErrors: Array<{ word: string; count: number; errorType: string }>;
-  hifzLevel: 'مبتدئ' | 'متوسط' | 'متقن' | 'حافظ مجاز';
+  hifzLevel: "مبتدئ" | "متوسط" | "متقن" | "حافظ مجاز";
   totalQuizzes: number;
   quizSuccessRate: number; // percentage
   weeklyProgress: Array<{ week: string; count: number }>;
@@ -88,7 +93,7 @@ export interface PerformanceStats {
 
 export interface ChatMessage {
   id: string;
-  sender: 'user' | 'bot';
+  sender: "user" | "bot";
   text: string;
   timestamp: string;
   explanation?: ExplanationResult;

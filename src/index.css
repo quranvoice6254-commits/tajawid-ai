@@ -1,40 +1,88 @@
-@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Tajawal:wght@300;400;500;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Tajawal:wght@300;400;500;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap");
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   --font-sans: "Tajawal", ui-sans-serif, system-ui, sans-serif;
   --font-amiri: "Amiri", serif;
   --font-mono: "JetBrains Mono", monospace;
-  
-  --color-emerald-primary: #0a5f3e;
-  --color-emerald-light: #e6f3ee;
+
+  --color-emerald-primary: var(--brand-primary);
+  --color-emerald-light: var(--brand-light);
   --color-gold-accent: #c49a45;
   --color-gold-light: #fdfbf7;
+
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --color-border-primary: var(--border-primary);
+
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-light: var(--brand-light);
+}
+
+:root {
+  /* Light Theme */
+  --bg-primary: #f7faf8;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f4f4f5; /* zinc-100 */
+
+  --text-primary: #1e293b;
+  --text-secondary: #3f3f46;
+  --text-muted: #71717a;
+
+  --border-primary: #f4f4f5;
+
+  --brand-primary: #0a5f3e;
+  --brand-light: #e6f3ee;
+}
+
+.dark {
+  /* Dark Theme */
+  --bg-primary: #121212;
+  --bg-secondary: #1e1e1e;
+  --bg-tertiary: #242424;
+
+  --text-primary: #f8fafc; /* slate-50 */
+  --text-secondary: #cbd5e1; /* slate-300 */
+  --text-muted: #94a3b8; /* slate-400 */
+
+  --border-primary: #334155; /* slate-700 */
+
+  --brand-primary: #34d399; /* emerald-400 */
+  --brand-light: rgba(16, 185, 129, 0.1);
+  --color-gold-light: #2c2514; /* darker background for active items */
 }
 
 /* Custom classical Islamic styling additions */
 body {
-  background-color: #f7faf8;
-  color: #1e293b;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   font-family: var(--font-sans);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+/* Hide scrollbars globally */
+::-webkit-scrollbar {
+  display: none;
 }
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
-  border-radius: 3px;
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Elegant animations */
 @keyframes pulseGlow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 5px rgba(196, 154, 69, 0.2);
   }
   50% {
@@ -44,6 +92,99 @@ body {
 
 .verse-highlight-active {
   animation: pulseGlow 2s infinite ease-in-out;
-  background-color: #fcf9f0 !important;
+  background-color: var(--color-gold-light) !important;
   border-right: 4px solid var(--color-gold-accent) !important;
+}
+
+/* Glass Navigation Bar Styles */
+.glass-nav-bar {
+  position: relative;
+  width: 100%;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 40px; 
+  border: 1px solid rgba(255, 255, 255, 0.1); 
+  box-shadow: 
+    0 4px 30px rgba(0, 0, 0, 0.4),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.dark .glass-nav-bar {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.nav-item {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 2;
+  -webkit-tap-highlight-color: transparent;
+  flex-direction: column;
+}
+
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--text-muted); 
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.nav-text {
+  font-size: 10px;
+  font-weight: 800;
+  color: #2ecc71;
+  opacity: 0;
+  max-height: 0;
+  transform: translateY(10px) scale(0.8);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+}
+
+.nav-item:hover .nav-icon {
+  color: var(--text-secondary);
+}
+
+.nav-item.active .nav-icon {
+  color: #2ecc71; /* Islamic green */
+  transform: scale(0.9) translateY(-2px);
+  filter: drop-shadow(0 0 8px rgba(46, 204, 113, 0.6));
+}
+
+.nav-item.active .nav-text {
+  opacity: 1;
+  max-height: 20px;
+  transform: translateY(0) scale(1);
+  margin-top: 2px;
+}
+
+.glass-indicator {
+  position: absolute;
+  top: 6px;
+  right: 8px; /* RTL layout */
+  width: calc((100% - 16px) / 5);
+  height: calc(100% - 12px);
+  z-index: 1;
+  pointer-events: none;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.indicator-glow {
+  width: 100%;
+  height: 100%;
+  border-radius: 35px;
+  background: linear-gradient(135deg, rgba(46, 204, 113, 0.25) 0%, rgba(39, 174, 96, 0.1) 100%);
+  border: 1px solid rgba(46, 204, 113, 0.4);
+  box-shadow: 
+    0 8px 20px rgba(39, 174, 96, 0.3),
+    inset 0 1px 2px rgba(255, 255, 255, 0.2);
 }

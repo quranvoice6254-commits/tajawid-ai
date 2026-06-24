@@ -112,7 +112,14 @@
           "description": "ISO timestamp of the profile last update"
         }
       },
-      "required": ["userId", "displayName", "photoURL", "email", "settings", "updatedAt"]
+      "required": [
+        "userId",
+        "displayName",
+        "photoURL",
+        "email",
+        "settings",
+        "updatedAt"
+      ]
     }
   },
   "firestore": {

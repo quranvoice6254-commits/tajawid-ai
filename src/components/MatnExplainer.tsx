@@ -164,8 +164,8 @@ export default function MatnExplainer({
       {selectedData && (
         <div className="space-y-6">
           {/* Metadata banner of specific book */}
-          <div className="bg-gradient-to-br from-emerald-primary to-emerald-900 text-white rounded-3xl p-6 shadow-md relative overflow-hidden">
-            <div className="absolute inset-x-0 bottom-0 top-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-700 to-transparent opacity-30 pointer-events-none" />
+          <div className="bg-brand-primary text-white rounded-3xl p-6 shadow-md relative overflow-hidden">
+            <div className="absolute inset-x-0 bottom-0 top-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/10 to-transparent opacity-30 pointer-events-none" />
             <div className="relative z-10 space-y-3">
               <div className="flex flex-wrap items-center gap-1.5">
                 <span className="text-[10px] font-black bg-amber-400 text-emerald-950 px-2.5 py-1 rounded-full uppercase">

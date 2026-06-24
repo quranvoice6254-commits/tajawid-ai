@@ -173,11 +173,22 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
 
         {/* Brand logo & tagline */}
         <div className="text-center space-y-2">
-          <div className="w-16 h-16 bg-brand-primary text-white rounded-2xl mx-auto flex items-center justify-center shadow-lg relative">
-            <Award className="w-8 h-8 text-amber-300" />
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-amber-500 rounded-full border border-bg-secondary flex items-center justify-center">
-              <Sparkles className="w-2.5 h-2.5 text-white" />
-            </div>
+          <div className="w-20 h-20 bg-brand-light rounded-3xl mx-auto flex items-center justify-center shadow-lg relative border border-brand-primary/20 overflow-hidden">
+            <img 
+              src="/logo.png" 
+              alt="تجاويد Logo" 
+              className="w-full h-full object-cover" 
+              onError={(e) => { 
+                const target = e.currentTarget;
+                if (target.src.endsWith('.png')) {
+                  target.src = '/logo.jpg';
+                } else if (target.src.endsWith('.jpg')) {
+                  target.src = '/logo.jpeg';
+                } else {
+                  target.src = 'https://placehold.co/100x100/0a5f3e/ffffff?text=Logo';
+                }
+              }} 
+            />
           </div>
           <div>
             <h1 className="text-3xl font-black text-brand-primary font-amiri tracking-wide mt-2">

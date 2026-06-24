@@ -2,15 +2,20 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   BookOpen,
+  BookOpenText,
   Mic,
+  AudioLines,
   HelpCircle,
+  Lightbulb,
   Activity,
+  TrendingUp,
   Award,
   Sparkles,
   User,
   LogOut,
   Settings,
   MessageSquare,
+  BotMessageSquare,
   ShieldCheck,
   CheckCircle,
   AlertCircle,
@@ -101,17 +106,40 @@ const IntroScreen = ({ onStart }: { onStart: () => void; key?: string }) => {
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 1.1, filter: "blur(10px)" }}
       transition={{ duration: 0.8, ease: "easeInOut" }}
-      className="fixed inset-0 z-[100] bg-gradient-to-tr from-emerald-950 via-emerald-900 to-emerald-primary flex flex-col items-center justify-center p-6 overflow-hidden"
+      className="fixed inset-0 z-[100] bg-bg-primary flex flex-col items-center justify-center p-6 overflow-hidden"
     >
-      {/* Background decorations */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-brand-light0/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-
-      <div className="max-w-2xl text-center flex flex-col items-center relative z-10">
-        <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white font-amiri tracking-wide leading-relaxed drop-shadow-xl flex items-center justify-center flex-wrap gap-x-2">
+      {/* Background decorations matching the app */}
+      <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-brand-primary/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none z-0" />
+      <div className="fixed bottom-0 left-0 w-[600px] h-[600px] bg-amber-500/10 rounded-full blur-[120px] translate-y-1/3 -translate-x-1/3 pointer-events-none z-0" />
+      
+      <div className="max-w-2xl text-center flex flex-col items-center relative z-10 bg-bg-secondary p-12 rounded-[3rem] shadow-2xl border border-white/20 dark:border-white/5 backdrop-blur-xl">
+        <motion.div 
+          initial={{ clipPath: "circle(0% at 50% 50%)", opacity: 0, scale: 0.8 }}
+          animate={{ clipPath: "circle(100% at 50% 50%)", opacity: 1, scale: 1 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+          className="w-32 h-32 mb-8 flex items-center justify-center rounded-3xl overflow-hidden shadow-2xl shadow-brand-primary/20 bg-brand-light dark:bg-brand-primary/10 border border-brand-primary/20"
+        >
+          <img 
+            src="/logo.png" 
+            alt="تجاويد Logo" 
+            className="w-full h-full object-cover" 
+            onError={(e) => { 
+              const target = e.currentTarget;
+              if (target.src.endsWith('.png')) {
+                target.src = '/logo.jpg';
+              } else if (target.src.endsWith('.jpg')) {
+                target.src = '/logo.jpeg';
+              } else {
+                target.src = 'https://placehold.co/400x400/0a5f3e/ffffff?text=Logo';
+              }
+            }} 
+          />
+        </motion.div>
+        
+        <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-text-primary font-amiri tracking-wide leading-relaxed drop-shadow-sm flex items-center justify-center flex-wrap gap-x-2">
           <TypewriterText text="مرحباً بك في" onComplete={() => setStage(1)} />
           {stage >= 1 ? (
-            <span className="bg-gradient-to-l from-amber-200 via-amber-400 to-amber-500 bg-clip-text text-transparent drop-shadow-2xl">
+            <span className="text-brand-primary drop-shadow-md">
               <TypewriterText text="تجاويد Ai" onComplete={() => setStage(2)} />
             </span>
           ) : (
@@ -124,7 +152,7 @@ const IntroScreen = ({ onStart }: { onStart: () => void; key?: string }) => {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="mt-6 text-emerald-200/90 font-bold text-base md:text-lg tracking-widest bg-bg-secondary/5 px-6 py-2 rounded-full border border-white/10"
+            className="mt-6 text-text-secondary font-bold text-base md:text-lg tracking-widest bg-brand-light dark:bg-brand-primary/10 px-6 py-2 rounded-full border border-brand-primary/20"
           >
             كرر حتى تتقن
           </motion.div>
@@ -136,11 +164,11 @@ const IntroScreen = ({ onStart }: { onStart: () => void; key?: string }) => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5, type: "spring" }}
             onClick={onStart}
-            className="mt-12 px-10 py-4 bg-gradient-to-l from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-emerald-950 font-black text-sm md:text-base rounded-full shadow-[0_0_40px_rgba(251,191,36,0.3)] hover:shadow-[0_0_60px_rgba(251,191,36,0.5)] transition-all flex items-center gap-2 cursor-pointer"
+            className="mt-12 px-10 py-4 bg-brand-primary text-white font-black text-sm md:text-base rounded-full shadow-lg hover:shadow-xl hover:shadow-brand-primary/30 transition-all flex items-center gap-2 cursor-pointer group"
           >
             ابدأ الآن
             <svg
-              className="w-5 h-5 -scale-x-100"
+              className="w-5 h-5 -scale-x-100 transform group-hover:-translate-x-1 transition-transform"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -1086,11 +1114,25 @@ export default function App() {
             >
               <div className="glass-nav-bar flex items-center justify-between w-full" dir="rtl">
                 <div className="flex items-center gap-2 text-right pl-3">
-                  <span className="p-2 bg-brand-primary/10 text-brand-primary rounded-2xl ml-1">
-                    <Award className="w-5 h-5 text-amber-500" />
-                  </span>
+                  <div className="w-10 h-10 rounded-xl overflow-hidden bg-brand-light flex items-center justify-center border border-brand-primary/20 shadow-sm ml-1">
+                    <img 
+                      src="/logo.png" 
+                      alt="Logo" 
+                      className="w-full h-full object-cover" 
+                      onError={(e) => { 
+                        const target = e.currentTarget;
+                        if (target.src.endsWith('.png')) {
+                          target.src = '/logo.jpg';
+                        } else if (target.src.endsWith('.jpg')) {
+                          target.src = '/logo.jpeg';
+                        } else {
+                          target.src = 'https://placehold.co/100x100/0a5f3e/ffffff?text=Logo';
+                        }
+                      }} 
+                    />
+                  </div>
                   <div>
-                    <h1 className="text-base font-black text-brand-primary tracking-tight font-amiri leading-none">
+                    <h1 className="text-lg font-black text-brand-primary tracking-tight font-amiri leading-none">
                       تجاويد
                     </h1>
                     <span className="text-[10px] text-text-muted font-bold block mt-0.5 truncate tracking-widest">
@@ -1163,7 +1205,10 @@ export default function App() {
                   className={`nav-item ${activeTab === "explain" ? "active" : ""}`}
                   onClick={() => setActiveTab("explain")}
                 >
-                  <BookOpen className="nav-icon" />
+                  <div className="relative w-6 h-6 flex items-center justify-center">
+                    <BookOpen className={`absolute nav-icon transition-all duration-500 ${activeTab === "explain" ? "scale-0 opacity-0 rotate-90" : "scale-100 opacity-100 rotate-0"}`} />
+                    <BookOpenText className={`absolute nav-icon transition-all duration-500 ${activeTab === "explain" ? "scale-100 opacity-100 rotate-0 -translate-y-1" : "scale-0 opacity-0 -rotate-90"}`} />
+                  </div>
                   <span className="nav-text">شرح</span>
                 </div>
                 {/* 2. Quiz */}
@@ -1171,7 +1216,10 @@ export default function App() {
                   className={`nav-item ${activeTab === "quiz" ? "active" : ""}`}
                   onClick={() => setActiveTab("quiz")}
                 >
-                  <HelpCircle className="nav-icon" />
+                  <div className="relative w-6 h-6 flex items-center justify-center">
+                    <HelpCircle className={`absolute nav-icon transition-all duration-500 ${activeTab === "quiz" ? "scale-0 opacity-0 rotate-90" : "scale-100 opacity-100 rotate-0"}`} />
+                    <Lightbulb className={`absolute nav-icon transition-all duration-500 ${activeTab === "quiz" ? "scale-100 opacity-100 rotate-0 -translate-y-1" : "scale-0 opacity-0 -rotate-90"}`} />
+                  </div>
                   <span className="nav-text">اختبار</span>
                 </div>
                 {/* 3. Recitate */}
@@ -1179,7 +1227,10 @@ export default function App() {
                   className={`nav-item ${activeTab === "recitate" ? "active" : ""}`}
                   onClick={() => setActiveTab("recitate")}
                 >
-                  <Mic className="nav-icon" />
+                  <div className="relative w-6 h-6 flex items-center justify-center">
+                    <Mic className={`absolute nav-icon transition-all duration-500 ${activeTab === "recitate" ? "scale-0 opacity-0 rotate-90" : "scale-100 opacity-100 rotate-0"}`} />
+                    <AudioLines className={`absolute nav-icon transition-all duration-500 ${activeTab === "recitate" ? "scale-100 opacity-100 rotate-0 -translate-y-1" : "scale-0 opacity-0 -rotate-90"}`} />
+                  </div>
                   <span className="nav-text">تسميع</span>
                 </div>
                 {/* 4. Chat */}
@@ -1187,7 +1238,10 @@ export default function App() {
                   className={`nav-item ${activeTab === "chat" ? "active" : ""}`}
                   onClick={() => setActiveTab("chat")}
                 >
-                  <MessageSquare className="nav-icon" />
+                  <div className="relative w-6 h-6 flex items-center justify-center">
+                    <MessageSquare className={`absolute nav-icon transition-all duration-500 ${activeTab === "chat" ? "scale-0 opacity-0 rotate-90" : "scale-100 opacity-100 rotate-0"}`} />
+                    <BotMessageSquare className={`absolute nav-icon transition-all duration-500 ${activeTab === "chat" ? "scale-100 opacity-100 rotate-0 -translate-y-1" : "scale-0 opacity-0 -rotate-90"}`} />
+                  </div>
                   <span className="nav-text">مساعد</span>
                 </div>
                 {/* 5. Stats */}
@@ -1195,7 +1249,10 @@ export default function App() {
                   className={`nav-item ${activeTab === "stats" ? "active" : ""}`}
                   onClick={() => setActiveTab("stats")}
                 >
-                  <Activity className="nav-icon" />
+                  <div className="relative w-6 h-6 flex items-center justify-center">
+                    <Activity className={`absolute nav-icon transition-all duration-500 ${activeTab === "stats" ? "scale-0 opacity-0 rotate-90" : "scale-100 opacity-100 rotate-0"}`} />
+                    <TrendingUp className={`absolute nav-icon transition-all duration-500 ${activeTab === "stats" ? "scale-100 opacity-100 rotate-0 -translate-y-1" : "scale-0 opacity-0 -rotate-90"}`} />
+                  </div>
                   <span className="nav-text">أداء</span>
                 </div>
 

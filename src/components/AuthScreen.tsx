@@ -8,6 +8,8 @@ import {
   GoogleAuthProvider,
   updateProfile,
   signInAnonymously,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
 } from "firebase/auth";
 import {
   Award,
@@ -18,6 +20,7 @@ import {
   CheckCircle,
   Sparkles,
   LogIn,
+  Phone,
 } from "lucide-react";
 
 interface AuthScreenProps {
@@ -25,12 +28,15 @@ interface AuthScreenProps {
 }
 
 export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
-  const [activeTab, setActiveTab] = useState<"login" | "register" | "forgot">(
+  const [activeTab, setActiveTab] = useState<"login" | "register" | "forgot" | "phone">(
     "login",
   );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [confirmationResult, setConfirmationResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -161,6 +167,62 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
     }
   };
 
+  const setupRecaptcha = () => {
+    if (!(window as any).recaptchaVerifier && isFirebaseReady && auth) {
+      (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible',
+        'callback': () => {
+          // reCAPTCHA solved, allow signInWithPhoneNumber.
+        }
+      });
+    }
+  };
+
+  const handleSendCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setInfo(null);
+    try {
+      if (isFirebaseReady && auth) {
+        setupRecaptcha();
+        const appVerifier = (window as any).recaptchaVerifier;
+        const result = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+        setConfirmationResult(result);
+        setInfo("تم إرسال رمز التحقق إلى هاتفك");
+      } else {
+        const result = await mockAuth.signInWithPhoneNumber(phoneNumber, null);
+        setConfirmationResult(result);
+        setInfo("تم إرسال رمز التحقق إلى هاتفك (وضع التجربة)");
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "حدث خطأ أثناء إرسال رمز التحقق");
+      if ((window as any).recaptchaVerifier) {
+        (window as any).recaptchaVerifier.render().then((widgetId: any) => {
+          (window as any).grecaptcha.reset(widgetId);
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await confirmationResult.confirm(verificationCode);
+      onAuthSuccess(result.user);
+    } catch (err: any) {
+      console.error(err);
+      setError("رمز التحقق غير صحيح، يرجى المحاولة مرة أخرى.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div
       className="min-h-screen bg-bg-primary flex items-center justify-center p-4"
@@ -241,7 +303,20 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
                   : "text-text-muted hover:text-text-secondary"
               }`}
             >
-              تسجيل الدخول
+              البريد
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab("phone");
+                setError(null);
+              }}
+              className={`flex-1 text-center pb-2.5 text-xs font-black transition-all ${
+                activeTab === "phone"
+                  ? "border-b-2 border-brand-primary text-brand-primary"
+                  : "text-text-muted hover:text-text-secondary"
+              }`}
+            >
+              رقم الهاتف
             </button>
             <button
               onClick={() => {
@@ -259,98 +334,155 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
           </div>
         )}
 
-        <form onSubmit={handleEmailAction} className="space-y-4">
-          {activeTab === "forgot" && (
-            <div className="space-y-1">
-              <h3 className="font-extrabold text-sm text-text-primary text-right">
-                نسيت كلمة المرور؟
-              </h3>
-              <p className="text-[11px] text-text-muted leading-relaxed text-right pb-2">
-                أدخل بريدك الإلكتروني وسيقوم النظام بإرسال رابط تعيين كلمة
-                المرور المخصص لك آلياً ومباشرة.
-              </p>
-            </div>
-          )}
-
-          {activeTab === "register" && (
+        {activeTab === "phone" ? (
+          <form onSubmit={confirmationResult ? handleVerifyCode : handleSendCode} className="space-y-4">
             <div className="space-y-1.5 text-right">
               <label className="text-[10px] font-black text-text-muted uppercase tracking-wider block">
-                الأسم الكامل
+                رقم الهاتف
               </label>
               <div className="relative">
-                <UserIcon className="absolute right-3 top-2.5 w-4.5 h-4.5 text-text-muted" />
+                <Phone className="absolute right-3 top-2.5 w-4.5 h-4.5 text-text-muted" />
                 <input
-                  type="text"
+                  type="tel"
                   required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="محمد بن أحمد..."
-                  className="w-full pr-10 pl-3 py-2 text-xs bg-bg-tertiary border border-border-primary rounded-xl outline-none focus:border-brand-primary text-right font-medium"
+                  dir="ltr"
+                  disabled={!!confirmationResult}
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="+966 50 000 0000"
+                  className="w-full pr-10 pl-3 py-2 text-xs bg-bg-tertiary border border-border-primary rounded-xl outline-none focus:border-brand-primary text-left font-medium"
                 />
               </div>
             </div>
-          )}
 
-          <div className="space-y-1.5 text-right">
-            <label className="text-[10px] font-black text-text-muted uppercase tracking-wider block">
-              البريد الإلكتروني
-            </label>
-            <div className="relative">
-              <Mail className="absolute right-3 top-2.5 w-4.5 h-4.5 text-text-muted" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@domain.com"
-                className="w-full pr-10 pl-3 py-2 text-xs bg-bg-tertiary border border-border-primary rounded-xl outline-none focus:border-brand-primary text-right font-medium"
-              />
-            </div>
-          </div>
-
-          {activeTab !== "forgot" && (
-            <div className="space-y-1.5 text-right">
-              <label className="text-[10px] font-black text-text-muted uppercase tracking-wider block">
-                كلمة المرور
-              </label>
-              <div className="relative">
-                <Lock className="absolute right-3 top-2.5 w-4.5 h-4.5 text-text-muted" />
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pr-10 pl-3 py-2 text-xs bg-bg-tertiary border border-border-primary rounded-xl outline-none focus:border-brand-primary text-right font-medium"
-                />
+            {confirmationResult && (
+              <div className="space-y-1.5 text-right animate-fade-in">
+                <label className="text-[10px] font-black text-text-muted uppercase tracking-wider block">
+                  رمز التحقق
+                </label>
+                <div className="relative">
+                  <Lock className="absolute right-3 top-2.5 w-4.5 h-4.5 text-text-muted" />
+                  <input
+                    type="text"
+                    required
+                    dir="ltr"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    placeholder="123456"
+                    className="w-full pr-10 pl-3 py-2 text-xs bg-bg-tertiary border border-border-primary rounded-xl outline-none focus:border-brand-primary text-left font-medium tracking-widest"
+                  />
+                </div>
               </div>
-              {activeTab === "login" && (
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("forgot")}
-                  className="text-[10px] text-brand-primary font-bold hover:underline float-left mt-0.5"
-                >
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-2.5 bg-brand-primary text-white font-extrabold text-xs rounded-xl shadow-md hover:bg-emerald-900 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
+            >
+              <LogIn className="w-4 h-4" />
+              {loading
+                ? "جاري المعالجة..."
+                : confirmationResult
+                  ? "تأكيد الدخول"
+                  : "إرسال الرمز"}
+            </button>
+            <div id="recaptcha-container"></div>
+          </form>
+        ) : (
+          <form onSubmit={handleEmailAction} className="space-y-4">
+            {activeTab === "forgot" && (
+              <div className="space-y-1">
+                <h3 className="font-extrabold text-sm text-text-primary text-right">
                   نسيت كلمة المرور؟
-                </button>
-              )}
-            </div>
-          )}
+                </h3>
+                <p className="text-[11px] text-text-muted leading-relaxed text-right pb-2">
+                  أدخل بريدك الإلكتروني وسيقوم النظام بإرسال رابط تعيين كلمة
+                  المرور المخصص لك آلياً ومباشرة.
+                </p>
+              </div>
+            )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 bg-brand-primary text-white font-extrabold text-xs rounded-xl shadow-md hover:bg-emerald-900 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
-          >
-            <LogIn className="w-4 h-4" />
-            {loading
-              ? "جاري المعالجة..."
-              : activeTab === "login"
-                ? "سجل الدخول"
-                : activeTab === "register"
-                  ? "إنشاء حساب جدید"
-                  : "إرسال رابط الاستعادة"}
-          </button>
-        </form>
+            {activeTab === "register" && (
+              <div className="space-y-1.5 text-right">
+                <label className="text-[10px] font-black text-text-muted uppercase tracking-wider block">
+                  الأسم الكامل
+                </label>
+                <div className="relative">
+                  <UserIcon className="absolute right-3 top-2.5 w-4.5 h-4.5 text-text-muted" />
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="محمد بن أحمد..."
+                    className="w-full pr-10 pl-3 py-2 text-xs bg-bg-tertiary border border-border-primary rounded-xl outline-none focus:border-brand-primary text-right font-medium"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-1.5 text-right">
+              <label className="text-[10px] font-black text-text-muted uppercase tracking-wider block">
+                البريد الإلكتروني
+              </label>
+              <div className="relative">
+                <Mail className="absolute right-3 top-2.5 w-4.5 h-4.5 text-text-muted" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@domain.com"
+                  className="w-full pr-10 pl-3 py-2 text-xs bg-bg-tertiary border border-border-primary rounded-xl outline-none focus:border-brand-primary text-right font-medium"
+                />
+              </div>
+            </div>
+
+            {activeTab !== "forgot" && (
+              <div className="space-y-1.5 text-right">
+                <label className="text-[10px] font-black text-text-muted uppercase tracking-wider block">
+                  كلمة المرور
+                </label>
+                <div className="relative">
+                  <Lock className="absolute right-3 top-2.5 w-4.5 h-4.5 text-text-muted" />
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full pr-10 pl-3 py-2 text-xs bg-bg-tertiary border border-border-primary rounded-xl outline-none focus:border-brand-primary text-right font-medium"
+                  />
+                </div>
+                {activeTab === "login" && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("forgot")}
+                    className="text-[10px] text-brand-primary font-bold hover:underline float-left mt-0.5"
+                  >
+                    نسيت كلمة المرور؟
+                  </button>
+                )}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-2.5 bg-brand-primary text-white font-extrabold text-xs rounded-xl shadow-md hover:bg-emerald-900 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
+            >
+              <LogIn className="w-4 h-4" />
+              {loading
+                ? "جاري المعالجة..."
+                : activeTab === "login"
+                  ? "سجل الدخول"
+                  : activeTab === "register"
+                    ? "إنشاء حساب جدید"
+                    : "إرسال رابط الاستعادة"}
+            </button>
+          </form>
+        )}
 
         {/* Separator */}
         {activeTab !== "forgot" && (

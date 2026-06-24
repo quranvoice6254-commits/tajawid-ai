@@ -134,6 +134,26 @@ class MockAuth {
     return { user: this.currentUser };
   }
 
+  async signInWithPhoneNumber(phoneNumber: string, appVerifier: any) {
+    return {
+      confirm: async (code: string) => {
+        if (code === "123456") {
+          this.currentUser = {
+            uid: "local-user-phone",
+            email: "phone@tajweed.app",
+            phoneNumber: phoneNumber,
+            displayName: "مستخدم هاتف",
+            photoURL: "",
+            emailVerified: true,
+          };
+          this.triggerChange();
+          return { user: this.currentUser };
+        }
+        throw new Error("رمز التحقق غير صحيح");
+      }
+    };
+  }
+
   async signOut() {
     this.currentUser = null;
     this.triggerChange();

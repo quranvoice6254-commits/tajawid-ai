@@ -17,7 +17,7 @@ let geminiClient: GoogleGenAI | null = null;
 
 function getGeminiClient(): GoogleGenAI {
   if (!geminiClient) {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = "AQ.Ab8RN6J2kwpReGH4b041vlPFD54It6C94FdhvPx1Xukei7fQIg" || process.env.GEMINI_API_KEY;
     if (!apiKey) {
       throw new Error(
         "GEMINI_API_KEY is not defined. Please configure it in your Secrets/Environment variables.",

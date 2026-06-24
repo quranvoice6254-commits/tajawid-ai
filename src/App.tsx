@@ -124,14 +124,7 @@ const IntroScreen = ({ onStart }: { onStart: () => void; key?: string }) => {
             alt="تجاويد Logo" 
             className="w-full h-full object-cover" 
             onError={(e) => { 
-              const target = e.currentTarget;
-              if (target.src.endsWith('.png')) {
-                target.src = '/logo.jpg';
-              } else if (target.src.endsWith('.jpg')) {
-                target.src = '/logo.jpeg';
-              } else {
-                target.src = 'https://placehold.co/400x400/0a5f3e/ffffff?text=Logo';
-              }
+              e.currentTarget.src = 'https://placehold.co/400x400/0a5f3e/ffffff?text=Logo';
             }} 
           />
         </motion.div>
@@ -1120,14 +1113,7 @@ export default function App() {
                       alt="Logo" 
                       className="w-full h-full object-cover" 
                       onError={(e) => { 
-                        const target = e.currentTarget;
-                        if (target.src.endsWith('.png')) {
-                          target.src = '/logo.jpg';
-                        } else if (target.src.endsWith('.jpg')) {
-                          target.src = '/logo.jpeg';
-                        } else {
-                          target.src = 'https://placehold.co/100x100/0a5f3e/ffffff?text=Logo';
-                        }
+                        e.currentTarget.src = 'https://placehold.co/100x100/0a5f3e/ffffff?text=Logo';
                       }} 
                     />
                   </div>

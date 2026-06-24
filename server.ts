@@ -1028,4 +1028,10 @@ async function setupServer() {
   });
 }
 
-setupServer();
+// Start the server directly if running locally or in Docker
+if (!process.env.VERCEL) {
+  setupServer();
+}
+
+// Export the app for Vercel Serverless Functions
+export default app;

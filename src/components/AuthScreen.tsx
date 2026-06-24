@@ -178,14 +178,7 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
               alt="تجاويد Logo" 
               className="w-full h-full object-cover" 
               onError={(e) => { 
-                const target = e.currentTarget;
-                if (target.src.endsWith('.png')) {
-                  target.src = '/logo.jpg';
-                } else if (target.src.endsWith('.jpg')) {
-                  target.src = '/logo.jpeg';
-                } else {
-                  target.src = 'https://placehold.co/100x100/0a5f3e/ffffff?text=Logo';
-                }
+                e.currentTarget.src = 'https://placehold.co/100x100/0a5f3e/ffffff?text=Logo';
               }} 
             />
           </div>

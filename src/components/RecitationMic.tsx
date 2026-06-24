@@ -176,10 +176,10 @@ export default function RecitationMic({
       stream.getTracks().forEach((track) => track.stop());
       return true;
     } catch (err: any) {
-      console.error("Microphone permission denied:", err);
-      if (err.name === "NotFoundError" || err.message.includes("Requested device not found")) {
+      if (err.name === "NotFoundError" || err.message?.includes("Requested device not found")) {
         setRecognitionError("لم يتم العثور على ميكروفون في جهازك. يرجى توصيل ميكروفون للبدء.");
       } else {
+        console.error("Microphone permission denied:", err);
         setRecognitionError(
           "🚫 عذرًا، تم رفض إذن الميكروفون. يرجى تفعيل الصلاحية للميكروفون للبدء بالتسميع."
         );

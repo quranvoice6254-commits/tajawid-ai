@@ -8,8 +8,6 @@ import {
   GoogleAuthProvider,
   updateProfile,
   signInAnonymously,
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
 } from "firebase/auth";
 import {
   Award,
@@ -20,7 +18,6 @@ import {
   CheckCircle,
   Sparkles,
   LogIn,
-  Phone,
 } from "lucide-react";
 
 interface AuthScreenProps {
@@ -28,19 +25,15 @@ interface AuthScreenProps {
 }
 
 export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
-  const [activeTab, setActiveTab] = useState<"login" | "register" | "forgot" | "phone">(
+  const [activeTab, setActiveTab] = useState<"login" | "register" | "forgot">(
     "login",
   );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
-  const [confirmationResult, setConfirmationResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showDomainHelp, setShowDomainHelp] = useState(false);
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -167,62 +160,6 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
     }
   };
 
-  const setupRecaptcha = () => {
-    if (!(window as any).recaptchaVerifier && isFirebaseReady && auth) {
-      (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible',
-        'callback': () => {
-          // reCAPTCHA solved, allow signInWithPhoneNumber.
-        }
-      });
-    }
-  };
-
-  const handleSendCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setInfo(null);
-    try {
-      if (isFirebaseReady && auth) {
-        setupRecaptcha();
-        const appVerifier = (window as any).recaptchaVerifier;
-        const result = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-        setConfirmationResult(result);
-        setInfo("تم إرسال رمز التحقق إلى هاتفك");
-      } else {
-        const result = await mockAuth.signInWithPhoneNumber(phoneNumber, null);
-        setConfirmationResult(result);
-        setInfo("تم إرسال رمز التحقق إلى هاتفك (وضع التجربة)");
-      }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "حدث خطأ أثناء إرسال رمز التحقق");
-      if ((window as any).recaptchaVerifier) {
-        (window as any).recaptchaVerifier.render().then((widgetId: any) => {
-          (window as any).grecaptcha.reset(widgetId);
-        });
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await confirmationResult.confirm(verificationCode);
-      onAuthSuccess(result.user);
-    } catch (err: any) {
-      console.error(err);
-      setError("رمز التحقق غير صحيح، يرجى المحاولة مرة أخرى.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div
       className="min-h-screen bg-bg-primary flex items-center justify-center p-4"
@@ -261,8 +198,7 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
             </p>
           </div>
           <p className="text-xs text-text-muted font-bold max-w-sm mx-auto pt-1 leading-relaxed">
-            المنصة الذكية الرائدة لتسميع المتون وضبط قواعد التجويد والتوحيد
-            باستخدام الذكاء الاصطناعي التفاعلي.
+            المنصة الذكية الرائدة لتسميع المتون وضبط قواعد التجويد باستخدام الذكاء الاصطناعي التفاعلي.
           </p>
         </div>
 
@@ -303,20 +239,7 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
                   : "text-text-muted hover:text-text-secondary"
               }`}
             >
-              البريد
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab("phone");
-                setError(null);
-              }}
-              className={`flex-1 text-center pb-2.5 text-xs font-black transition-all ${
-                activeTab === "phone"
-                  ? "border-b-2 border-brand-primary text-brand-primary"
-                  : "text-text-muted hover:text-text-secondary"
-              }`}
-            >
-              رقم الهاتف
+              تسجيل الدخول
             </button>
             <button
               onClick={() => {
@@ -334,64 +257,8 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
           </div>
         )}
 
-        {activeTab === "phone" ? (
-          <form onSubmit={confirmationResult ? handleVerifyCode : handleSendCode} className="space-y-4">
-            <div className="space-y-1.5 text-right">
-              <label className="text-[10px] font-black text-text-muted uppercase tracking-wider block">
-                رقم الهاتف
-              </label>
-              <div className="relative">
-                <Phone className="absolute right-3 top-2.5 w-4.5 h-4.5 text-text-muted" />
-                <input
-                  type="tel"
-                  required
-                  dir="ltr"
-                  disabled={!!confirmationResult}
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="+966 50 000 0000"
-                  className="w-full pr-10 pl-3 py-2 text-xs bg-bg-tertiary border border-border-primary rounded-xl outline-none focus:border-brand-primary text-left font-medium"
-                />
-              </div>
-            </div>
-
-            {confirmationResult && (
-              <div className="space-y-1.5 text-right animate-fade-in">
-                <label className="text-[10px] font-black text-text-muted uppercase tracking-wider block">
-                  رمز التحقق
-                </label>
-                <div className="relative">
-                  <Lock className="absolute right-3 top-2.5 w-4.5 h-4.5 text-text-muted" />
-                  <input
-                    type="text"
-                    required
-                    dir="ltr"
-                    value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value)}
-                    placeholder="123456"
-                    className="w-full pr-10 pl-3 py-2 text-xs bg-bg-tertiary border border-border-primary rounded-xl outline-none focus:border-brand-primary text-left font-medium tracking-widest"
-                  />
-                </div>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2.5 bg-brand-primary text-white font-extrabold text-xs rounded-xl shadow-md hover:bg-emerald-900 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
-            >
-              <LogIn className="w-4 h-4" />
-              {loading
-                ? "جاري المعالجة..."
-                : confirmationResult
-                  ? "تأكيد الدخول"
-                  : "إرسال الرمز"}
-            </button>
-            <div id="recaptcha-container"></div>
-          </form>
-        ) : (
-          <form onSubmit={handleEmailAction} className="space-y-4">
-            {activeTab === "forgot" && (
+        <form onSubmit={handleEmailAction} className="space-y-4">
+          {activeTab === "forgot" && (
               <div className="space-y-1">
                 <h3 className="font-extrabold text-sm text-text-primary text-right">
                   نسيت كلمة المرور؟
@@ -482,7 +349,6 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
                     : "إرسال رابط الاستعادة"}
             </button>
           </form>
-        )}
 
         {/* Separator */}
         {activeTab !== "forgot" && (
@@ -542,84 +408,6 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
           >
             ← العودة لصفحة تسجيل الدخول
           </button>
-        )}
-
-        <hr className="border-border-primary my-2" />
-
-        <div className="text-center pt-1">
-          <button
-            type="button"
-            onClick={() => setShowDomainHelp(!showDomainHelp)}
-            className="text-[11px] text-amber-600 font-black hover:underline inline-flex items-center gap-1 cursor-pointer"
-          >
-            ⚠️ تواجه مشكلة تسجيل الدخول على Vercel؟ اضغط لمعرفة الحل
-          </button>
-        </div>
-
-        {showDomainHelp && (
-          <div className="bg-amber-50/70 p-4 rounded-2xl border border-amber-200/50 text-right text-xs space-y-3 mt-3 animate-fade-in relative z-10 overflow-hidden">
-            <h4 className="font-extrabold text-amber-900 text-xs">
-              🛠️ تفعيل الدخول لجميع المستخدمين على Vercel:
-            </h4>
-            <p className="text-text-secondary leading-relaxed text-[11px]">
-              عند نشرك التطبيق على نطاقك الخاص في Vercel:{" "}
-              <span className="font-mono bg-bg-secondary px-1.5 py-0.5 rounded border border-amber-200 text-[10px] font-bold">
-                walyelamer2026.vercel.app
-              </span>
-              ، يرجى تهيئة حسابك في Firebase بالتالى ليستطيع الجميع الدخول:
-            </p>
-            <ol className="list-decimal list-inside space-y-2 text-text-secondary text-[11px] font-semibold leading-relaxed">
-              <li>
-                <strong>تداول وسائل الدخول:</strong> توجّه إلى{" "}
-                <a
-                  href="https://console.firebase.google.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-brand-primary underline font-bold"
-                >
-                  منصة تحكم Firebase
-                </a>{" "}
-                ثم اختر مشروعك المسمى{" "}
-                <span className="font-mono text-brand-primary bg-bg-secondary px-1 leading-none rounded border border-border-primary text-[10px]">
-                  gen-lang-client-0492639450
-                </span>
-                ، ثم اختر <strong>Authentication</strong> &gt;{" "}
-                <strong>Sign-in method</strong>، ثم اضغط تفعيل لكل من:
-                <div className="flex gap-2 mt-1 mr-4 font-extrabold text-[10px]">
-                  <span className="bg-bg-tertiary text-text-secondary px-1.5 py-0.5 rounded">
-                    البريد وكلمة السر (Email)
-                  </span>
-                  <span className="bg-bg-tertiary text-text-secondary px-1.5 py-0.5 rounded">
-                    حساب جوجل (Google)
-                  </span>
-                  <span className="bg-bg-tertiary text-text-secondary px-1.5 py-0.5 rounded">
-                    تسجيل الزائر (Anonymous)
-                  </span>
-                </div>
-              </li>
-              <li>
-                <strong>إضافة نطاق Vercel المعتمد:</strong> من تبويب{" "}
-                <strong>Settings</strong> &gt;{" "}
-                <strong>Authorized domains</strong> في صفحة الـ Authentication
-                نفسها، اضغط على <strong>Add domain</strong> ثم أضف النطاق التالي
-                بدقة:{" "}
-                <span className="font-mono bg-brand-light/50 text-brand-primary px-1.5 py-0.5 rounded border border-brand-primary/10 select-all text-[10px] font-bold">
-                  walyelamer2026.vercel.app
-                </span>
-              </li>
-              <li>
-                <strong>قواعد الأجهزة وقواعد البيانات:</strong> لقد قمنا ببرمجة
-                ونشر قواعد الحماية السليمة الكاملة لجميع المستخدمين، فبمجرد
-                إتمام الخطوات رقم 1 و 2 أعلاه سيعمل تسجيل الدخول على نطاقك
-                الخارجي لجميع حزم الزوار والمستخدمين فوراً!
-              </li>
-            </ol>
-            <p className="text-brand-primary text-[10px] font-bold leading-normal pt-1 border-t border-amber-200/30">
-              💡 حل سريع ومباشر: يمكنك استخدام خيار{" "}
-              <strong>"الدخول كضيف"</strong> لتجربة كافة مميزات المنصة والتصحيح
-              الصوتي وتسميع المتون وحفظ الإنجازات مؤقتاً أيضاً.
-            </p>
-          </div>
         )}
       </div>
     </div>

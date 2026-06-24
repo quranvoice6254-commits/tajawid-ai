@@ -262,22 +262,30 @@ export default function SmartAssistant({
       }
 
       // Post message conversation to Gemini backend
-      const response = await fetch("/api/ask-bot", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: rawMsgText,
-          history: messages.slice(-8), // Send sliding window context length for memory
-          matnName: matnName,
-        }),
-      });
+      let response;
+      let botReply = "عذرًا، لم أتمكن من الاستجابة اللحظية.";
+      try {
+        response = await fetch("/api/ask-bot", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: rawMsgText,
+            history: messages.slice(-8), // Send sliding window context length for memory
+            matnName: matnName,
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error("فشل إرسال الاستعلام للخادم.");
+        if (!response.ok) {
+          console.error(`Server returned ${response.status}`);
+          botReply = "عذرًا، خادم الذكاء الاصطناعي غير متاح حاليًا. يرجى المحاولة لاحقًا.";
+        } else {
+          const resData = await response.json();
+          botReply = resData.text || "عذرًا، لم أتمكن من الاستجابة اللحظية.";
+        }
+      } catch (err) {
+        console.error("Fetch error:", err);
+        botReply = "عذرًا، تعذر الاتصال بالخادم. يرجى التحقق من اتصالك.";
       }
-
-      const resData = await response.json();
-      const botReply = resData.text || "عذرًا، لم أتمكن من الاستجابة اللحظية.";
 
       const botMsg: Message = {
         id: Math.random().toString(),

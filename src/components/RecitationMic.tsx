@@ -175,11 +175,15 @@ export default function RecitationMic({
       // Stop stream immediately to release hardware until recognition is started
       stream.getTracks().forEach((track) => track.stop());
       return true;
-    } catch (err) {
+    } catch (err: any) {
       console.error("Microphone permission denied:", err);
-      setRecognitionError(
-        "🚫 عذرًا، تم رفض إذن الميكروفون. يرجى تفعيل الصلاحية للميكروفون للبدء بالتسميع.",
-      );
+      if (err.name === "NotFoundError" || err.message.includes("Requested device not found")) {
+        setRecognitionError("لم يتم العثور على ميكروفون في جهازك. يرجى توصيل ميكروفون للبدء.");
+      } else {
+        setRecognitionError(
+          "🚫 عذرًا، تم رفض إذن الميكروفون. يرجى تفعيل الصلاحية للميكروفون للبدء بالتسميع."
+        );
+      }
       setStatus("فشل التعرف");
       return false;
     }

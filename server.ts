@@ -1022,7 +1022,7 @@ async function setupServer() {
 }
 
 // Start the server directly if running locally or in Docker
-if (!process.env.VERCEL) {
+if (!process.env.VERCEL && !process.env.NETLIFY && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
   setupServer();
 }
 
